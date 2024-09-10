@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">SaludApp</string>
+    <string name="profile_icon_description">Ícono de perfil</string>
 </resources>
