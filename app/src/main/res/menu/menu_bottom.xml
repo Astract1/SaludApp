@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <item
+        android:id="@+id/habitos"
+        android:icon="@drawable/habitos_icon"
+        android:title="@string/habitos" />
+
+    <item
+        android:id="@+id/pari_ti"
+        android:icon="@drawable/parati_icon"
+        android:title="@string/parati" />
+    <item
+        android:id="@+id/desafios"
+        android:icon="@drawable/desafios_icon"
+        android:title="@string/desafios" />
+
+    <item
+        android:id="@+id/noticias"
+        android:icon="@drawable/noticias_icon"
+        android:title="@string/noticias" />
+
+    <item
+        android:id="@+id/imc"
+        android:icon="@drawable/imc_icon"
+        android:title="@string/imc" />
+
+
+
+</menu>

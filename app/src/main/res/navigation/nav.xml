@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav"
+    app:startDestination="@id/habitos">
+
+    <fragment
+        android:id="@+id/habitos"
+        android:name="com.astract.saludapp.habitos"
+        tools:layout="@layout/fragment_habitos"/>
+    <fragment
+        android:id="@+id/desafios"
+        android:name="com.astract.saludapp.desafios"
+        tools:layout="@layout/fragment_desafios"/>
+    <fragment
+        android:id="@+id/imc"
+        android:name="com.astract.saludapp.imc"
+        tools:layout="@layout/fragment_imc"/>
+    <fragment
+        android:id="@+id/noticias"
+        android:name="com.astract.saludapp.noticias"
+        tools:layout="@layout/fragment_noticias"/>
+    <fragment
+        android:id="@+id/parati"
+        android:name="com.astract.saludapp.parati"
+        tools:layout="@layout/fragment_parati"/>
+
+
+
+
+
+
+</navigation>
