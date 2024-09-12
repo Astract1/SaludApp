@@ -10,5 +10,6 @@
     <string name="noticias">Noticias</string>
     <string name="imc">IMC Calculadora</string>
     <string name="bienvenido">Hola Usuario</string>
+    <string name="habitos_propuestos">Hábitos Propuestos</string>
 
 </resources>

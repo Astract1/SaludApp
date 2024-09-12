@@ -1,5 +1,8 @@
 package com.astract.saludapp
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,7 +11,10 @@ import android.widget.CheckBox
 import android.widget.TextView
 
 // Define el adaptador para el RecyclerView
-class HabitosAdapter(private val items: List<String>) : RecyclerView.Adapter<HabitosAdapter.ViewHolder>() {
+class HabitosAdapter(
+    private val items: MutableList<Habito>,
+    private val onHabitChanged: (List<Habito>) -> Unit
+) : RecyclerView.Adapter<HabitosAdapter.ViewHolder>() {
 
     // ViewHolder para manejar cada ítem del RecyclerView
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -25,12 +31,32 @@ class HabitosAdapter(private val items: List<String>) : RecyclerView.Adapter<Hab
     // Asocia datos con el ViewHolder
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
-        holder.textView.text = item
-        // Puedes agregar lógica adicional para el CheckBox si es necesario
+        holder.textView.text = item.nombre
+        holder.checkBox.isChecked = item.completado
+
+        holder.checkBox.setOnCheckedChangeListener { _, isChecked ->
+            item.completado = isChecked
+            // Llama a la función para animar el CheckBox cuando se marca
+            if (isChecked) {
+                animateCheckBox(holder.checkBox)
+            }
+            // Actualiza el progreso en el fragmento
+            onHabitChanged(items)
+        }
     }
 
     // Retorna el número total de ítems en la lista
     override fun getItemCount(): Int {
         return items.size
+    }
+
+    // Método para animar el CheckBox
+    private fun animateCheckBox(checkBox: CheckBox) {
+        val scaleX = ObjectAnimator.ofFloat(checkBox, "scaleX", 1.0f, 1.2f, 1.0f)
+        val scaleY = ObjectAnimator.ofFloat(checkBox, "scaleY", 1.0f, 1.2f, 1.0f)
+        val animatorSet = AnimatorSet()
+        animatorSet.playTogether(scaleX, scaleY)
+        animatorSet.duration = 300
+        animatorSet.start()
     }
 }

@@ -9,4 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name= "contraste_cyan">#3B3B3B</color>
     <color name="default_cyan">#26C0CC</color>
+    <color name="color_when_empty">#C1FAFE</color>
+    <color name="color_when_not_empty">#26C0CC</color>
+
 </resources>

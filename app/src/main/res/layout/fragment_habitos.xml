@@ -40,9 +40,9 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/fecha"
-         />
+        />
 
-    <View
+    <FrameLayout
         android:id="@+id/rectangulo"
         android:layout_width="380dp"
         android:layout_height="140dp"
@@ -50,7 +50,57 @@
         android:background="#D9D9D9"
         app:layout_constraintTop_toBottomOf="@id/bienvenida"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/circular_progress"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                app:indicatorColor="@color/color_when_not_empty"                app:indicatorSize="80dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.054"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:trackColor="#C1FAFE"
+                app:trackThickness="7dp" />
+
+            <TextView
+                android:id="@+id/progress_percentage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="50%"
+                android:textSize="24sp"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="@id/circular_progress"
+                app:layout_constraintStart_toStartOf="@id/circular_progress"
+                app:layout_constraintEnd_toEndOf="@id/circular_progress"
+                app:layout_constraintTop_toTopOf="@id/circular_progress"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintVertical_bias="0.5"/>
+
+            <TextView
+                android:id="@+id/habitos_completados"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="5 de 10 hábitos completados"
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="@id/circular_progress"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.533"
+                app:layout_constraintStart_toEndOf="@id/circular_progress"
+                app:layout_constraintTop_toTopOf="@id/circular_progress"
+                app:layout_constraintVertical_bias="0.459" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </FrameLayout>
 
     <TextView
         android:id="@+id/habitos"
@@ -60,7 +110,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:fontFamily="@font/montserrat"
-        android:text="Hábitos de Creados"
+        android:text="@string/habitos_propuestos"
         android:textSize="24sp"
         android:textColor="@color/black"
         app:layout_constraintTop_toBottomOf="@id/rectangulo"
@@ -70,7 +120,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="0dp"
-        android:layout_height="350sp"
+        android:layout_height="370sp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
@@ -80,7 +130,17 @@
         app:layout_constraintEnd_toEndOf="parent"
         tools:layout_editor_absoluteX="25dp" />
 
-
-
-
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_add"
+        android:layout_width="58dp"
+        android:layout_height="58dp"
+        android:layout_margin="16dp"
+        android:background="@drawable/button_background"
+        android:gravity="center"
+        android:text="+"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
