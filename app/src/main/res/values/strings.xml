@@ -9,5 +9,6 @@
     <string name="habitos">Habitos</string>
     <string name="noticias">Noticias</string>
     <string name="imc">IMC Calculadora</string>
+    <string name="bienvenido">Hola Usuario</string>
 
 </resources>
