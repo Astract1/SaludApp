@@ -8,7 +8,7 @@
         android:title="@string/habitos" />
 
     <item
-        android:id="@+id/pari_ti"
+        android:id="@+id/para_ti"
         android:icon="@drawable/parati_icon"
         android:title="@string/parati" />
     <item

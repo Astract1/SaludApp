@@ -21,10 +21,10 @@
         android:id="@+id/noticias"
         android:name="com.astract.saludapp.noticias"
         tools:layout="@layout/fragment_noticias"/>
-    <fragment
-        android:id="@+id/parati"
-        android:name="com.astract.saludapp.parati"
-        tools:layout="@layout/fragment_parati"/>
 
+    <fragment
+        android:id="@+id/para_ti"
+        android:name="com.astract.saludapp.para_ti"
+        tools:layout="@layout/fragment_para_ti"/>
 
 </navigation>
