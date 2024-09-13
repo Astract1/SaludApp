@@ -22,7 +22,7 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="Jueves 12 de septiembre, 2024" />
+        tools:text="@string/fecha" />
 
     <TextView
         android:id="@+id/bienvenida"
@@ -73,7 +73,7 @@
                 android:id="@+id/progress_percentage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="50%"
+                android:text="@string/progress_percentage"
                 android:textSize="24sp"
                 android:textColor="@color/black"
                 android:textStyle="bold"
@@ -88,7 +88,7 @@
                 android:id="@+id/habitos_completados"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="5 de 10 hábitos completados"
+                android:text="@string/habitos_completados"
                 android:textColor="@color/black"
                 android:textSize="20sp"
                 android:textStyle="bold"

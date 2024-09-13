@@ -2,7 +2,6 @@ package com.astract.saludapp
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -56,7 +55,18 @@ class HabitosAdapter(
         val scaleY = ObjectAnimator.ofFloat(checkBox, "scaleY", 1.0f, 1.2f, 1.0f)
         val animatorSet = AnimatorSet()
         animatorSet.playTogether(scaleX, scaleY)
-        animatorSet.duration = 300
+        animatorSet.duration = 300 // Duración de la animación en milisegundos
         animatorSet.start()
+    }
+
+    // Método para añadir un nuevo hábito y notificar cambios
+    fun addHabit(habit: Habito) {
+        items.add(habit)
+        notifyItemInserted(items.size - 1)
+    }
+
+    // Método para obtener la lista de hábitos
+    fun getItems(): List<Habito> {
+        return items
     }
 }

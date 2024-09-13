@@ -6,13 +6,23 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import android.widget.TextView
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.Spinner
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.AppCompatButton
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 class habitos : Fragment() {
 
@@ -54,21 +64,82 @@ class habitos : Fragment() {
         progressPercentageTextView = view.findViewById(R.id.progress_percentage)
         habitsCompletedTextView = view.findViewById(R.id.habitos_completados)
 
-        // Inicializa y configura el adaptador con MutableList
-        val items: MutableList<Habito> = mutableListOf(
-            Habito("Hábito 1", false),
-            Habito("Hábito 2", true),
-            Habito("Hábito 3", false)
-        )
-        adapter = HabitosAdapter(items) { updateProgress(it) }
+        // Aquí puedes inicializar el adaptador con una lista vacía si es necesario
+        adapter = HabitosAdapter(mutableListOf()) { updateProgress(it) }
         recyclerView.adapter = adapter
 
-        // Inicializa el progreso
-        updateProgress(items)
+        // Inicializa el progreso (esto puede estar vacío o tener un valor predeterminado)
+        updateProgress(adapter.getItems())
 
-        // Llama a la función de animación para los views
-        animateViews()
+        // Encuentra el botón y configura el OnClickListener
+        val addButton: Button = view.findViewById(R.id.btn_add)
+        addButton.setOnClickListener {
+            mostrarDialogoPersonalizado()
+        }
     }
+
+
+    private fun mostrarDialogoPersonalizado() {
+        // Infla la vista del diálogo personalizado
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_custom, null)
+
+        // Encuentra los elementos en la vista del diálogo
+        val nombreHábitoEditText: TextInputEditText = dialogView.findViewById(R.id.text_input_edit_text_nombre_habito)
+        val tiempoSpinner: Spinner = dialogView.findViewById(R.id.spinner_tiempo)
+        val frecuenciaSpinner: Spinner = dialogView.findViewById(R.id.spinner_frecuencia)
+        val guardarButton: MaterialButton = dialogView.findViewById(R.id.boton_guardar_habito)
+        val closeButton: ImageView = dialogView.findViewById(R.id.icon_close)
+
+        // Configura los datos para el Spinner de tiempo
+        val tiempoOptions = arrayOf("1 Mes (30 Dias)", "2 Meses (60 Dias)", "3 Meses (90 Dias)")
+        val tiempoAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, tiempoOptions)
+        tiempoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        tiempoSpinner.adapter = tiempoAdapter
+        tiempoSpinner.setSelection(0)
+
+        // Configura los datos para el Spinner de frecuencia
+        val frecuenciaOptions = arrayOf("Diario", "Semanal", "Mensual")
+        val frecuenciaAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, frecuenciaOptions)
+        frecuenciaAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        frecuenciaSpinner.adapter = frecuenciaAdapter
+        frecuenciaSpinner.setSelection(1) // Establece "Media" como valor predeterminado
+
+        // Crea el diálogo personalizado
+        val customDialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        // Configura el botón de guardar
+        guardarButton.setOnClickListener {
+            val nombreHábito = nombreHábitoEditText.text.toString().trim()
+            val tiempo = tiempoSpinner.selectedItem.toString()
+            val frecuencia = frecuenciaSpinner.selectedItem.toString()
+
+            if (nombreHábito.isNotEmpty()) {
+                // Añade el nuevo hábito a la lista
+                val nuevoHábito = Habito(nombreHábito, false)
+                adapter.addHabit(nuevoHábito)
+
+                // Actualiza el progreso y cierra el diálogo
+                updateProgress(adapter.getItems())
+                customDialog.dismiss()
+            } else {
+                nombreHábitoEditText.error = "El nombre del hábito no puede estar vacío"
+            }
+        }
+
+        // Configura el botón de cerrar (si existe)
+        closeButton.setOnClickListener {
+            customDialog.dismiss()
+        }
+
+        // Muestra el diálogo
+        customDialog.show()
+    }
+
+
+
+
 
     private fun updateProgress(items: List<Habito>) {
         val totalHabitos = items.size
@@ -80,10 +151,9 @@ class habitos : Fragment() {
         animatePercentage(progressPercentageTextView.text.toString().replace("%", "").toInt(), porcentaje)
 
         // Actualiza el TextView con los hábitos completados
-        habitsCompletedTextView.text = "$completados de $totalHabitos hábitos completados"
+        habitsCompletedTextView.text = "$completados de $totalHabitos hábitos habilitados"
     }
 
-    // Función para animar el CircularProgressIndicator
     private fun animateProgress(currentValue: Int, newValue: Int) {
         val progressAnimator = ValueAnimator.ofInt(currentValue, newValue)
         progressAnimator.duration = 1000 // Duración de la animación en milisegundos
@@ -94,7 +164,6 @@ class habitos : Fragment() {
         progressAnimator.start()
     }
 
-    // Función para animar el porcentaje del progreso
     private fun animatePercentage(currentValue: Int, newValue: Int) {
         val percentageAnimator = ValueAnimator.ofInt(currentValue, newValue)
         percentageAnimator.duration = 1000 // Duración de la animación
@@ -105,7 +174,6 @@ class habitos : Fragment() {
         percentageAnimator.start()
     }
 
-    // Función para obtener la fecha en el formato deseado
     private fun obtenerFechaActual(): String {
         val locale = Locale("es", "ES")
         val formatoFecha = SimpleDateFormat("EEEE d 'de' MMMM, yyyy", locale)
@@ -115,7 +183,6 @@ class habitos : Fragment() {
         return fechaFormateada.replaceFirstChar { it.titlecase(locale) }
     }
 
-    // Función para animar los views iniciales
     private fun animateViews() {
         val fadeInAnimator = ObjectAnimator.ofFloat(view?.findViewById(R.id.recycler_view), "alpha", 0f, 1f)
         fadeInAnimator.duration = 500 // Duración de la animación
@@ -128,5 +195,4 @@ class habitos : Fragment() {
     }
 }
 
-// Clase de datos para representar un hábito
 data class Habito(val nombre: String, var completado: Boolean)
