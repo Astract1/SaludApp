@@ -8,6 +8,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import android.widget.CheckBox
 import android.widget.TextView
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 // Define el adaptador para el RecyclerView
 class HabitosAdapter(
@@ -68,5 +71,15 @@ class HabitosAdapter(
     // Método para obtener la lista de hábitos
     fun getItems(): List<Habito> {
         return items
+    }
+
+
+    private fun obtenerFechaActual(): String {
+        val locale = Locale("es", "ES")
+        val formatoFecha = SimpleDateFormat("EEEE d 'de' MMMM, yyyy", locale)
+        val fecha = Date()
+        val fechaFormateada = formatoFecha.format(fecha)
+
+        return fechaFormateada.replaceFirstChar { it.titlecase(locale) }
     }
 }

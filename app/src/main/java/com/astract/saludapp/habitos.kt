@@ -14,6 +14,7 @@ import com.google.android.material.progressindicator.CircularProgressIndicator
 import android.widget.TextView
 import android.widget.Button
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.Spinner
 import androidx.appcompat.app.AlertDialog
@@ -64,12 +65,18 @@ class habitos : Fragment() {
         progressPercentageTextView = view.findViewById(R.id.progress_percentage)
         habitsCompletedTextView = view.findViewById(R.id.habitos_completados)
 
-        // Aquí puedes inicializar el adaptador con una lista vacía si es necesario
+        // Inicializa el adaptador con una lista vacía
         adapter = HabitosAdapter(mutableListOf()) { updateProgress(it) }
         recyclerView.adapter = adapter
 
-        // Inicializa el progreso (esto puede estar vacío o tener un valor predeterminado)
+        // Encuentra la vista de vacío
+        val emptyViewContainer: FrameLayout = view.findViewById(R.id.empty_habito_container)
+
+        // Inicializa el progreso
         updateProgress(adapter.getItems())
+
+        // Actualiza la visibilidad de la vista de vacío
+        updateEmptyViewVisibility()
 
         // Encuentra el botón y configura el OnClickListener
         val addButton: Button = view.findViewById(R.id.btn_add)
@@ -80,64 +87,49 @@ class habitos : Fragment() {
 
 
     private fun mostrarDialogoPersonalizado() {
-        // Infla la vista del diálogo personalizado
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_custom, null)
-
-        // Encuentra los elementos en la vista del diálogo
         val nombreHábitoEditText: TextInputEditText = dialogView.findViewById(R.id.text_input_edit_text_nombre_habito)
         val tiempoSpinner: Spinner = dialogView.findViewById(R.id.spinner_tiempo)
         val frecuenciaSpinner: Spinner = dialogView.findViewById(R.id.spinner_frecuencia)
         val guardarButton: MaterialButton = dialogView.findViewById(R.id.boton_guardar_habito)
         val closeButton: ImageView = dialogView.findViewById(R.id.icon_close)
 
-        // Configura los datos para el Spinner de tiempo
         val tiempoOptions = arrayOf("1 Mes (30 Dias)", "2 Meses (60 Dias)", "3 Meses (90 Dias)")
         val tiempoAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, tiempoOptions)
         tiempoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         tiempoSpinner.adapter = tiempoAdapter
-        tiempoSpinner.setSelection(0)
 
-        // Configura los datos para el Spinner de frecuencia
         val frecuenciaOptions = arrayOf("Diario", "Semanal", "Mensual")
         val frecuenciaAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, frecuenciaOptions)
         frecuenciaAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         frecuenciaSpinner.adapter = frecuenciaAdapter
-        frecuenciaSpinner.setSelection(1) // Establece "Media" como valor predeterminado
 
-        // Crea el diálogo personalizado
         val customDialog = AlertDialog.Builder(requireContext())
             .setView(dialogView)
             .create()
 
-        // Configura el botón de guardar
         guardarButton.setOnClickListener {
             val nombreHábito = nombreHábitoEditText.text.toString().trim()
             val tiempo = tiempoSpinner.selectedItem.toString()
             val frecuencia = frecuenciaSpinner.selectedItem.toString()
 
             if (nombreHábito.isNotEmpty()) {
-                // Añade el nuevo hábito a la lista
                 val nuevoHábito = Habito(nombreHábito, false)
                 adapter.addHabit(nuevoHábito)
-
-                // Actualiza el progreso y cierra el diálogo
                 updateProgress(adapter.getItems())
+                updateEmptyViewVisibility() // Actualiza la visibilidad de la vista vacía
                 customDialog.dismiss()
             } else {
                 nombreHábitoEditText.error = "El nombre del hábito no puede estar vacío"
             }
         }
 
-        // Configura el botón de cerrar (si existe)
         closeButton.setOnClickListener {
             customDialog.dismiss()
         }
 
-        // Muestra el diálogo
         customDialog.show()
     }
-
-
 
 
 
@@ -192,6 +184,18 @@ class habitos : Fragment() {
     companion object {
         @JvmStatic
         fun newInstance() = habitos()
+    }
+
+    private fun updateEmptyViewVisibility() {
+        val emptyViewContainer: FrameLayout = view?.findViewById(R.id.empty_habito_container) ?: return
+
+        if (adapter.itemCount == 0) {
+            recyclerView.visibility = View.GONE
+            emptyViewContainer.visibility = View.VISIBLE
+        } else {
+            recyclerView.visibility = View.VISIBLE
+            emptyViewContainer.visibility = View.GONE
+        }
     }
 }
 

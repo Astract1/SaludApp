@@ -21,5 +21,13 @@
     <string name = "tiempo">Tiempo</string>
     <string name = "frecuencia">Frecuencia</string>
     <string name = "guardar_habito">Crear Habito</string>
+    <string name = "no_habitos">No hay hábitos</string>
+    <string name = "calificación">Calificación Actual</string>
+    <string name = "peso_calificacion">-----</string>
+    <string name = "calcula_imc">Calcula tu IMC</string>
+    <string name = "altura">Altura en cm</string>
+    <string name = "peso">Peso en kg</string>
+    <string name = "calcular">Calcular</string>
+    <string name = "info_imc">Tu IMC puede ser una medida inicial útil para identificar tu clasificación de peso y tus factores de riesgo de obesidad. </string>
 
 </resources>
