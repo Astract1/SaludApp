@@ -15,6 +15,7 @@ import java.util.Locale
 // Define el adaptador para el RecyclerView
 class HabitosAdapter(
     private val items: MutableList<Habito>,
+
     private val onHabitChanged: (List<Habito>) -> Unit
 ) : RecyclerView.Adapter<HabitosAdapter.ViewHolder>() {
 

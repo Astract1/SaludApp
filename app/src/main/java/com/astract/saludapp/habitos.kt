@@ -36,7 +36,7 @@ class habitos : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            // Puedes manejar argumentos aquí si es necesario.
+
         }
     }
 

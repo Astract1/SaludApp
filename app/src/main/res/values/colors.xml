@@ -13,5 +13,6 @@
     <color name="color_when_not_empty">#26C0CC</color>
     <color name = "light_gray">#D9D9D9</color>
     <color name = "slip_color">#E7E7E7</color>
+    <color name = "cyan_book">#26C0CC</color>
 
 </resources>
