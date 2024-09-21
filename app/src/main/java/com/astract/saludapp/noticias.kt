@@ -1,12 +1,11 @@
 package com.astract.saludapp
 
+import android.content.Intent
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.ViewModelProvider
-import android.util.Log
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.astract.saludapp.database.MyDatabaseHelper
@@ -18,6 +17,7 @@ class noticias : Fragment() {
     private lateinit var noticiasViewModel: NoticiasViewModel
     private lateinit var dbHelper: MyDatabaseHelper
     private lateinit var adapter: NoticiasAdapter
+    private lateinit var recyclerView: RecyclerView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -26,25 +26,26 @@ class noticias : Fragment() {
         val view = inflater.inflate(R.layout.fragment_noticias, container, false)
 
         dbHelper = MyDatabaseHelper(requireContext())
-        noticiasViewModel = ViewModelProvider(this, NoticiasViewModelFactory(dbHelper)).get(NoticiasViewModel::class.java)
+        noticiasViewModel = NoticiasViewModelFactory(dbHelper).create(NoticiasViewModel::class.java)
 
-        val recyclerView: RecyclerView = view.findViewById(R.id.recyclerNoticias)
-        adapter = NoticiasAdapter(mutableListOf())
+        recyclerView = view.findViewById(R.id.recyclerNoticias)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        adapter = NoticiasAdapter(mutableListOf()) { _ -> openNoticiasCarga() }
         recyclerView.adapter = adapter
 
         noticiasViewModel.noticias.observe(viewLifecycleOwner) { listaDeNoticias ->
             adapter.updateNoticias(listaDeNoticias)
         }
 
-        // Carga las noticias de la base de datos
-        noticiasViewModel.loadNoticias()
-
         noticiasViewModel.fetchAndUpdateNews(requireContext())
 
+        noticiasViewModel.loadNoticias()
 
         return view
+    }
 
-
+    private fun openNoticiasCarga() {
+        val intent = Intent(requireContext(), Noticias_Carga::class.java)
+        startActivity(intent)
     }
 }

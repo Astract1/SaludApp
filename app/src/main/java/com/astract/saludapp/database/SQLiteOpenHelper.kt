@@ -141,5 +141,45 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
         return exists
     }
 
+    fun getNoticiaById(id: Int): Noticia? {
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_NAME,
+            null,
+            "$COLUMN_ID = ?",
+            arrayOf(id.toString()),
+            null,
+            null,
+            null
+        )
+
+        return if (cursor.moveToFirst()) {
+            val sourceJson = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SOURCE))
+            val source = Source(name = sourceJson)
+
+            val noticia = Noticia(
+                id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                source = source,
+                author = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_AUTHOR)),
+                title = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TITLE)),
+                description = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)),
+                url = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_URL)),
+                urlToImage = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_URL_TO_IMAGE)),
+                publishedAt = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PUBLISHED_AT)),
+                content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTENT)),
+                language = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_LANGUAGE)),
+                category = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CATEGORY))
+            )
+            cursor.close()
+            db.close()
+            noticia
+        } else {
+            cursor.close()
+            db.close()
+            null
+        }
+    }
+
+
 
 }

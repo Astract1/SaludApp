@@ -19,6 +19,9 @@ import retrofit2.Response
 class NoticiasViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
 
     private val _noticias = MutableLiveData<List<Noticia>>()
+    private val _noticia = MutableLiveData<Noticia?>()
+    val noticia: LiveData<Noticia?> get() = _noticia
+
     val noticias: LiveData<List<Noticia>> get() = _noticias
 
     fun fetchAndUpdateNews(context: Context) {
@@ -42,31 +45,40 @@ class NoticiasViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
                                 language = "es",
                                 category = "healthy"
                             )
-                            dbHelper.insertOrUpdateNoticia(noticiaEntity) // Cambia a tu método de actualización
+                            dbHelper.insertOrUpdateNoticia(noticiaEntity)
                         }
 
-                        // Imprimir información de las noticias actualizadas en la consola
                         Log.d("NoticiasViewModel", "Base de datos actualizada con las siguientes noticias:")
                         articles.forEach { noticia ->
                             Log.d("NoticiasViewModel", "Título: ${noticia.title}, Descripción: ${noticia.description}")
                         }
 
-                        // Cargar noticias actualizadas desde la base de datos
                         loadNoticias()
                     } ?: Log.e("NoticiasViewModel", "No articles found in response")
                 } else {
                     Log.e("NoticiasViewModel", "Error response: ${response.errorBody()?.string()}")
+                    showToast(context, "Error al obtener noticias: ${response.message()}")
                 }
             } catch (e: Exception) {
                 Log.e("NoticiasViewModel", "Error fetching news: ${e.message}")
+                showToast(context, "Error al obtener noticias: ${e.localizedMessage}")
             }
         }
     }
 
-
+    private fun showToast(context: Context, message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
 
     fun loadNoticias() {
         val listaDeNoticias = dbHelper.getAllNoticias()
         _noticias.postValue(listaDeNoticias)
+    }
+
+    fun getNoticiaById(id: Int) {
+        viewModelScope.launch {
+            val result = dbHelper.getNoticiaById(id)
+            _noticia.postValue(result)
+        }
     }
 }

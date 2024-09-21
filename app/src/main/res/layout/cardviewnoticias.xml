@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -15,60 +16,67 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp">
 
+            <!-- Título del Card -->
             <TextView
                 android:id="@+id/cardTitleN"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
                 android:text="@string/title"
                 android:textColor="@color/black"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:maxLines="2"
-                android:ellipsize="end"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/cardIconN"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@id/cardButton" />
 
+            <!-- Subtítulo del Card -->
             <TextView
                 android:id="@+id/cardSubtitleN"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/subtitle"
                 android:textSize="12sp"
                 android:textColor="@color/black"
+                android:layout_below="@id/cardTitleN"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@id/cardButton"
                 android:layout_marginTop="8dp"
                 android:maxLines="1"
-                android:ellipsize="end"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/cardIconN"
-                app:layout_constraintTop_toBottomOf="@id/cardTitleN" />
+                android:ellipsize="end" />
 
-            <ImageView
-                android:id="@+id/cardIconN"
+            <!-- Botón que contiene el icono y el texto "Ver más" -->
+            <LinearLayout
+                android:id="@+id/cardButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/icon_book"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:layout_marginEnd="16dp" />
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true">
 
-            <TextView
-                android:id="@+id/cardIconTexNt"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/text"
-                android:textSize="14sp"
-                android:textColor="@color/cyan_book"
-                app:layout_constraintTop_toBottomOf="@id/cardIconN"
-                app:layout_constraintEnd_toEndOf="@id/cardIconN"
-                android:layout_marginTop="8dp" />
+                <ImageView
+                    android:id="@+id/cardIconN"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/icon_book" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                <TextView
+                    android:id="@+id/cardIconTexNt"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ver más"
+                    android:textSize="14sp"
+                    android:textColor="@color/cyan_book"
+                    android:layout_marginTop="8dp" />
+            </LinearLayout>
+
+        </RelativeLayout>
 
     </androidx.cardview.widget.CardView>
 
