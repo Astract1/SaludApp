@@ -104,7 +104,7 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
 
 
     fun insertOrUpdateNoticia(noticia: NoticiaEntity) {
-        if (!noticiaExists(noticia.url)) { // Verifica si la noticia ya existe
+        if (!noticiaExists(noticia.url) && !isRemoved(noticia)) { // Verifica si la noticia ya existe y no está "removed"
             val db = writableDatabase
             val values = ContentValues().apply {
                 put(COLUMN_SOURCE, noticia.source)
@@ -121,10 +121,9 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
             db.insert(TABLE_NAME, null, values)
             db.close()
         } else {
-            Log.d("MyDatabaseHelper", "Noticia ya existe: ${noticia.title}")
+            Log.d("MyDatabaseHelper", "Noticia ya existe o es 'removed': ${noticia.title}")
         }
     }
-
     fun noticiaExists(url: String): Boolean {
         val db = readableDatabase
         val cursor = db.query(
@@ -178,6 +177,12 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
             db.close()
             null
         }
+    }
+
+
+    private fun isRemoved(noticia: NoticiaEntity): Boolean {
+        return noticia.title.contains("removed", ignoreCase = true) ||
+                noticia.description.contains("removed", ignoreCase = true)
     }
 
 

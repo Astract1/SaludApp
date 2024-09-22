@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -10,28 +9,28 @@
         android:id="@+id/textview_habitos"
         android:layout_width="328sp"
         android:layout_height="64sp"
-        android:text="Nombre del Hábito"
-        android:textStyle="bold"
-        android:textSize="16sp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="8dp"
         android:fontFamily="@font/montserrat"
+        android:gravity="center_vertical"
+        android:text="Nombre del Hábito"
         android:textColor="@color/black"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        android:textSize="16sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/checkbox_habitos"
-        android:layout_marginEnd="8dp"
-        android:gravity="center_vertical"
-        android:layout_marginStart="16dp"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <CheckBox
         android:id="@+id/checkbox_habitos"
         android:layout_width="40sp"
         android:layout_height="40sp"
         android:color="@color/black"
-        app:layout_constraintStart_toEndOf="@id/textview_habitos"
-        app:layout_constraintTop_toTopOf="parent"
+        android:gravity="center_vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:gravity="center_vertical"
-        />
+        app:layout_constraintStart_toEndOf="@id/textview_habitos"
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

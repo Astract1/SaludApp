@@ -20,7 +20,8 @@ class MainActivity : AppCompatActivity() {
     private fun setupNavegacion() {
         try {
             val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigationView)
-            val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
+            val navHostFragment =
+                supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
             NavigationUI.setupWithNavController(bottomNavigationView, navHostFragment.navController)
         } catch (e: Exception) {
             Log.e("MainActivity", "Error configurando la navegación", e)

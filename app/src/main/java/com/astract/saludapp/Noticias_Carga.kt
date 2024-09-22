@@ -3,6 +3,7 @@ package com.astract.saludapp
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -13,6 +14,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.astract.saludapp.database.MyDatabaseHelper
 import com.bumptech.glide.Glide
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class Noticias_Carga : AppCompatActivity() {
 
@@ -48,14 +51,18 @@ class Noticias_Carga : AppCompatActivity() {
         val noticiaId = intent.getIntExtra("NOTICIA_ID", -1)
         if (noticiaId == -1) {
             showToast("ID de noticia no válido")
-            finish() // Cierra la actividad si el ID es inválido
+            finish()
             return
         }
         loadNoticiaDetails(noticiaId)
 
         // Funcionalidad para el botón de Volver
         btnVolver.setOnClickListener {
-            onBackPressed()
+            finish() // Cierra la actividad
+            overridePendingTransition(
+                R.anim.slide_in_right,
+                R.anim.slide_out_left
+            ) // Aplica las animaciones
         }
 
         // Funcionalidad para el botón Guardar
@@ -80,7 +87,14 @@ class Noticias_Carga : AppCompatActivity() {
 
         if (noticia != null) {
             titleTextView.text = noticia.title
-            dateTextView.text = "Fecha: ${noticia.publishedAt}"
+
+            // Log para depuración de la fecha
+            Log.d("Noticias_Carga", "Fecha recibida: ${noticia.publishedAt}")
+
+            // Aplicar formato a la fecha
+            val formattedDate = formatDate(noticia.publishedAt)
+            dateTextView.text = "Fecha: $formattedDate"
+
             infoTextView.text = noticia.content
             noticiaUrl = noticia.url // Asignar la URL
 
@@ -97,7 +111,23 @@ class Noticias_Carga : AppCompatActivity() {
         }
     }
 
+    private fun formatDate(fecha: String): String {
+        val inputFormat =
+            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()) // Formato ISO 8601
+        val outputFormat = SimpleDateFormat("dd/MM/yyyy hh:mm a", Locale.getDefault())
+
+        return try {
+            val date = inputFormat.parse(fecha)
+            outputFormat.format(date ?: fecha)
+        } catch (e: Exception) {
+            Log.e("Noticias_Carga", "Error al formatear la fecha: ${e.message}")
+            fecha // En caso de error, retornar la fecha sin formato
+        }
+    }
+
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
+
+
 }

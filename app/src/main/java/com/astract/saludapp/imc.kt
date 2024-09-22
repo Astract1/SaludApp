@@ -62,14 +62,17 @@ class imc : Fragment() {
                     valorPesoTextView.setTextColor(Color.BLUE)
                     valorPesoTextView.text = "Bajo peso\nIMC: %.2f".format(imc)
                 }
+
                 imc in 18.5..24.9 -> {
                     valorPesoTextView.setTextColor(Color.GREEN)
                     valorPesoTextView.text = "Normal\nIMC: %.2f".format(imc)
                 }
+
                 imc in 25.0..29.9 -> {
                     valorPesoTextView.setTextColor(Color.YELLOW)
                     valorPesoTextView.text = "Sobrepeso\nIMC: %.2f".format(imc)
                 }
+
                 else -> {
                     valorPesoTextView.setTextColor(Color.RED)
                     valorPesoTextView.text = "Obesidad\nIMC: %.2f".format(imc)

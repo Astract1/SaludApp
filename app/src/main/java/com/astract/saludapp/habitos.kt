@@ -88,19 +88,22 @@ class habitos : Fragment() {
 
     private fun mostrarDialogoPersonalizado() {
         val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_custom, null)
-        val nombreHábitoEditText: TextInputEditText = dialogView.findViewById(R.id.text_input_edit_text_nombre_habito)
+        val nombreHábitoEditText: TextInputEditText =
+            dialogView.findViewById(R.id.text_input_edit_text_nombre_habito)
         val tiempoSpinner: Spinner = dialogView.findViewById(R.id.spinner_tiempo)
         val frecuenciaSpinner: Spinner = dialogView.findViewById(R.id.spinner_frecuencia)
         val guardarButton: MaterialButton = dialogView.findViewById(R.id.boton_guardar_habito)
         val closeButton: ImageView = dialogView.findViewById(R.id.icon_close)
 
         val tiempoOptions = arrayOf("1 Mes (30 Dias)", "2 Meses (60 Dias)", "3 Meses (90 Dias)")
-        val tiempoAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, tiempoOptions)
+        val tiempoAdapter =
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, tiempoOptions)
         tiempoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         tiempoSpinner.adapter = tiempoAdapter
 
         val frecuenciaOptions = arrayOf("Diario", "Semanal", "Mensual")
-        val frecuenciaAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, frecuenciaOptions)
+        val frecuenciaAdapter =
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, frecuenciaOptions)
         frecuenciaAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         frecuenciaSpinner.adapter = frecuenciaAdapter
 
@@ -132,7 +135,6 @@ class habitos : Fragment() {
     }
 
 
-
     private fun updateProgress(items: List<Habito>) {
         val totalHabitos = items.size
         val completados = items.count { it.completado }
@@ -140,7 +142,10 @@ class habitos : Fragment() {
 
         // Animar el progreso del CircularProgressIndicator y el porcentaje
         animateProgress(progressIndicator.progress, porcentaje)
-        animatePercentage(progressPercentageTextView.text.toString().replace("%", "").toInt(), porcentaje)
+        animatePercentage(
+            progressPercentageTextView.text.toString().replace("%", "").toInt(),
+            porcentaje
+        )
 
         // Actualiza el TextView con los hábitos completados
         habitsCompletedTextView.text = "$completados de $totalHabitos hábitos habilitados"
@@ -176,7 +181,8 @@ class habitos : Fragment() {
     }
 
     private fun animateViews() {
-        val fadeInAnimator = ObjectAnimator.ofFloat(view?.findViewById(R.id.recycler_view), "alpha", 0f, 1f)
+        val fadeInAnimator =
+            ObjectAnimator.ofFloat(view?.findViewById(R.id.recycler_view), "alpha", 0f, 1f)
         fadeInAnimator.duration = 500 // Duración de la animación
         fadeInAnimator.start()
     }
@@ -187,7 +193,8 @@ class habitos : Fragment() {
     }
 
     private fun updateEmptyViewVisibility() {
-        val emptyViewContainer: FrameLayout = view?.findViewById(R.id.empty_habito_container) ?: return
+        val emptyViewContainer: FrameLayout =
+            view?.findViewById(R.id.empty_habito_container) ?: return
 
         if (adapter.itemCount == 0) {
             recyclerView.visibility = View.GONE

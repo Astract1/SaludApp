@@ -1,76 +1,105 @@
-<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".noticias">
 
+    <!-- Título de Noticias -->
     <TextView
         android:id="@+id/titleNoticias"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:fontFamily="@font/montserrat"
-        android:text="@string/title_noticias"
-        android:textColor="@color/black"
-        android:textSize="16sp"
-        android:gravity="center"
         android:layout_marginStart="16dp"
+        android:layout_marginTop="14dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
-    android:scrollHorizontally="false"
-    android:maxLines="2"
-    android:ellipsize="end" />
+        android:ellipsize="end"
+        android:fontFamily="@font/montserrat"
+        android:gravity="center"
+        android:maxLines="2"
+        android:scrollHorizontally="false"
+        android:text="@string/title_noticias"
+        android:textColor="@color/black"
+        android:textSize="16sp" />
+
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchNoticias"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/search_background"
+        android:padding="10dp"
+        android:queryHint="Buscar noticias"
+        app:closeIcon="@drawable/ic_close"
+        app:iconTint="@color/white"
+        app:iconifiedByDefault="false"
+        app:queryBackground="@android:color/transparent" />
 
     <TextView
         android:id="@+id/Noticias_subtitulo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
-    android:fontFamily="@font/montserrat"
-    android:text="@string/noticias"
-    android:textColor="@color/black"
-    android:textSize="20sp"
-    android:layout_marginStart="16dp"
-    android:layout_marginEnd="16dp"
-    android:layout_marginBottom="8dp"
-    android:maxLines="2"
-    android:ellipsize="end" />
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:ellipsize="end"
+        android:fontFamily="@font/montserrat"
+        android:maxLines="2"
+        android:text="@string/noticias"
+        android:textColor="@color/black"
+        android:textSize="20sp" />
+
+    <!-- ProgressBar para la carga -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" /> <!-- Inicialmente oculto -->
+
+    <!-- TextView para "No se encontraron noticias" -->
+    <TextView
+        android:id="@+id/noResultsTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="No se encontraron noticias"
+        android:visibility="gone" /> <!-- Inicialmente oculto -->
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerNoticias"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
         android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        android:layout_marginTop="8dp" />
+        android:layout_weight="1" />
 
+    <!-- Sección para acceder a Artículos -->
     <TextView
-        android:id="@+id/Articulos_subtitulo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:fontFamily="@font/montserrat"
-        android:text="@string/articulos"
-        android:textColor="@color/black"
-        android:textSize="20sp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
-    android:maxLines="2"
-    android:ellipsize="end" />
+        android:gravity="center"
+        android:text="¿Deseas conocer artículos referentes a la salud?"
+        android:textColor="@color/black" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerArticulos"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/buttonArticulos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:layout_marginBottom="16dp"
-        android:layout_marginTop="8dp" />
+        android:background="@color/cyan_book"
+        android:text="Ver Artículos"
+        android:textColor="@android:color/white" />
 
 </LinearLayout>

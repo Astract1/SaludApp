@@ -27,7 +27,8 @@ class NoticiasViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
     fun fetchAndUpdateNews(context: Context) {
         viewModelScope.launch {
             try {
-                val apiUrl = "https://newsapi.org/v2/top-headlines?category=health&apiKey=${BuildConfig.NEWS_API_KEY}"
+                val apiUrl =
+                    "https://newsapi.org/v2/top-headlines?category=health&apiKey=${BuildConfig.NEWS_API_KEY}"
                 val response: Response<NewsResponse> = RetrofitInstance.api.getHealthNews(apiUrl)
 
                 if (response.isSuccessful) {
@@ -48,9 +49,15 @@ class NoticiasViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
                             dbHelper.insertOrUpdateNoticia(noticiaEntity)
                         }
 
-                        Log.d("NoticiasViewModel", "Base de datos actualizada con las siguientes noticias:")
+                        Log.d(
+                            "NoticiasViewModel",
+                            "Base de datos actualizada con las siguientes noticias:"
+                        )
                         articles.forEach { noticia ->
-                            Log.d("NoticiasViewModel", "Título: ${noticia.title}, Descripción: ${noticia.description}")
+                            Log.d(
+                                "NoticiasViewModel",
+                                "Título: ${noticia.title}, Descripción: ${noticia.description}"
+                            )
                         }
 
                         loadNoticias()

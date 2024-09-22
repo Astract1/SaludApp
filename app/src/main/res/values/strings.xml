@@ -29,12 +29,14 @@
     <string name="peso">Peso en kg</string>
     <string name="calcular">Calcular</string>
     <string name="info_imc">Tu IMC puede ser una medida inicial útil para identificar tu clasificación de peso y tus factores de riesgo de obesidad. </string>
-    <string name="title_noticias">Recuerda que las noticias y artículos son proporcionados por entidades reconocidas, \
-puedes saber qué entidad es dando clic en el enlace.</string>
+    <string name="title_noticias">Recuerda que puedes acceder a mas información oprimiendo Ver Mas</string>
     <string name="articulos">Artículos</string>
     <string name="text">Ver mas</string>
     <string name="subtitle">Subtitle</string>
     <string name="title">Title</string>
+    <string name="icon_desc">Icon Description</string>
+    <string name="image_desc">Image Description</string>
+
 
 
 </resources>
