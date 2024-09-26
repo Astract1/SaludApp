@@ -13,7 +13,9 @@ import com.astract.saludapp.database.MyDatabaseHelper
 import com.astract.saludapp.models.NewsResponse
 import com.astract.saludapp.models.NoticiaEntity
 import com.astract.saludapp.network.RetrofitInstance
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Response
 
 class NoticiasViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
@@ -78,9 +80,19 @@ class NoticiasViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
     }
 
     fun loadNoticias() {
-        val listaDeNoticias = dbHelper.getAllNoticias()
-        _noticias.postValue(listaDeNoticias)
+        viewModelScope.launch {
+            try {
+                val listaDeNoticias = withContext(Dispatchers.IO) {
+                    dbHelper.getAllNoticias()
+                }
+                _noticias.postValue(listaDeNoticias)
+            } catch (e: Exception) {
+                // Manejar el error adecuadamente, como mostrar un mensaje al usuario
+                Log.e("Error", "Error al cargar las noticias", e)
+            }
+        }
     }
+
 
     fun getNoticiaById(id: Int) {
         viewModelScope.launch {

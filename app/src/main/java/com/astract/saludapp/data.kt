@@ -23,14 +23,11 @@ data class Noticia(
 
 
 data class Articulo(
-    val source: String = "",
-    val author: String = "",
+  val articleId: Int = 0,
     val title: String = "",
-    val description: String = "",
+    val abstract: String = "",
     val url: String = "",
-    val urlToImage: String = "",
     val publishedAt: String = "",
-    val content: String = "",
-    val language: String = "es",
-    val category: String = "health"
+    val imagenurl: String = "",
+    val author: String = ""
 )

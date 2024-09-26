@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
@@ -14,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.astract.saludapp.database.MyDatabaseHelper
 import com.astract.saludapp.viewmodel.NoticiasViewModel
 import com.astract.saludapp.viewmodel.NoticiasViewModelFactory
-import java.util.logging.Handler
 
 class noticias : Fragment() {
 
@@ -25,6 +25,7 @@ class noticias : Fragment() {
     private lateinit var searchView: SearchView
     private lateinit var noResultsTextView: TextView
     private lateinit var progressBar: ProgressBar
+    private lateinit var buttonArticulos: Button // Nueva referencia al botón
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,10 +46,16 @@ class noticias : Fragment() {
 
         noResultsTextView = view.findViewById(R.id.noResultsTextView)
         progressBar = view.findViewById(R.id.progressBar)
+        buttonArticulos = view.findViewById(R.id.buttonArticulos) // Inicializa el botón
 
         // Inicialmente ocultar el ProgressBar y el mensaje de no resultados
         progressBar.visibility = View.GONE
         noResultsTextView.visibility = View.GONE
+
+        // Configura el OnClickListener para el botón
+        buttonArticulos.setOnClickListener {
+            openArticulosCarga() // Método para abrir la actividad de artículos
+        }
 
         // Iniciar la carga de noticias después de un breve retraso
         loadNoticiasWithDelay()
@@ -62,7 +69,6 @@ class noticias : Fragment() {
         // Muestra el ProgressBar y luego carga las noticias después de un retraso
         progressBar.visibility = View.VISIBLE
 
-        // Usar Handler para retrasar la carga
         android.os.Handler().postDelayed({
             noticiasViewModel.fetchAndUpdateNews(requireContext())
             noticiasViewModel.loadNoticias()
@@ -112,4 +118,9 @@ class noticias : Fragment() {
         requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
     }
 
+    private fun openArticulosCarga() {
+        val intent = Intent(requireContext(), Articulos::class.java)
+        startActivity(intent)
+        requireActivity().overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+    }
 }

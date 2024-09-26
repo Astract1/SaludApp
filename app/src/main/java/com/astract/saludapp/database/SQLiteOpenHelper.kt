@@ -6,6 +6,7 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
+import com.astract.saludapp.Articulo
 import com.astract.saludapp.Noticia
 import com.astract.saludapp.Source
 import com.astract.saludapp.models.NoticiaEntity
@@ -13,6 +14,8 @@ import com.astract.saludapp.models.NoticiaEntity
 class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     companion object {
+
+        //Tabla de Noticias
         private const val DATABASE_NAME = "noticias.db"
         private const val DATABASE_VERSION = 1
         const val TABLE_NAME = "noticias"
@@ -27,9 +30,25 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
         const val COLUMN_CONTENT = "content"
         const val COLUMN_LANGUAGE = "language"
         const val COLUMN_CATEGORY = "category"
+
+
+
+        // Tabla de Articulos
+
+        const val TABLE_NAME_ARTICULOS = "articulos"
+        const val COLUMN_ID_ARTICULO = "id"
+        const val COLUMN_TITLE_ARTICULO = "title"
+        const val COLUMN_BODY_ARTICULO = "body"
+        const val COLUMN_AUTHOR_ARTICULO = "author"
+        const val COLUMN_PUBLISHED_AT_ARTICULO = "publishedAt"
+        const val COLUMN_URL_ARTICULO = "url"
+        const val COLUMN_IMAGE_URL_ARTICULO = "imageUrl"
+
     }
 
     override fun onCreate(db: SQLiteDatabase) {
+        Log.d("MyDatabaseHelper", "Creating tables...")
+
         val createTable = ("CREATE TABLE $TABLE_NAME (" +
                 "$COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "$COLUMN_SOURCE TEXT," +
@@ -42,11 +61,24 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
                 "$COLUMN_CONTENT TEXT," +
                 "$COLUMN_LANGUAGE TEXT," +
                 "$COLUMN_CATEGORY TEXT)")
+
+        val createTableArticulos = ("CREATE TABLE $TABLE_NAME_ARTICULOS (" +
+                "$COLUMN_ID_ARTICULO INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "$COLUMN_TITLE_ARTICULO TEXT," +
+                "$COLUMN_BODY_ARTICULO TEXT," +
+                "$COLUMN_AUTHOR_ARTICULO TEXT," +
+                "$COLUMN_PUBLISHED_AT_ARTICULO TEXT," +
+                "$COLUMN_URL_ARTICULO TEXT," +
+                "$COLUMN_IMAGE_URL_ARTICULO TEXT)")
+
         db.execSQL(createTable)
+        db.execSQL(createTableArticulos)
     }
+
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL("DROP TABLE IF EXISTS $TABLE_NAME")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_NAME_ARTICULOS")
         onCreate(db)
     }
 
@@ -62,8 +94,6 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
             put(COLUMN_URL_TO_IMAGE, noticia.urlToImage)
             put(COLUMN_PUBLISHED_AT, noticia.publishedAt)
             put(COLUMN_CONTENT, noticia.content)
-            put(COLUMN_LANGUAGE, noticia.language)
-            put(COLUMN_CATEGORY, noticia.category)
         }
         db.insert(TABLE_NAME, null, values)
         db.close()
@@ -90,9 +120,7 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
                     url = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_URL)),
                     urlToImage = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_URL_TO_IMAGE)),
                     publishedAt = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PUBLISHED_AT)),
-                    content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTENT)),
-                    language = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_LANGUAGE)),
-                    category = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CATEGORY))
+                    content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTENT))
                 )
                 listaDeNoticias.add(noticia)
             } while (cursor.moveToNext())
@@ -115,8 +143,6 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
                 put(COLUMN_URL_TO_IMAGE, noticia.urlToImage)
                 put(COLUMN_PUBLISHED_AT, noticia.publishedAt)
                 put(COLUMN_CONTENT, noticia.content)
-                put(COLUMN_LANGUAGE, noticia.language)
-                put(COLUMN_CATEGORY, noticia.category)
             }
             db.insert(TABLE_NAME, null, values)
             db.close()
@@ -165,9 +191,7 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
                 url = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_URL)),
                 urlToImage = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_URL_TO_IMAGE)),
                 publishedAt = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PUBLISHED_AT)),
-                content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTENT)),
-                language = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_LANGUAGE)),
-                category = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CATEGORY))
+                content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTENT))
             )
             cursor.close()
             db.close()
@@ -186,5 +210,126 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
     }
 
 
+    fun insertArticulo(articulo: Articulo) {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COLUMN_TITLE_ARTICULO, articulo.title)
+            put(COLUMN_BODY_ARTICULO, articulo.abstract)
+            put(COLUMN_AUTHOR_ARTICULO, articulo.author)
+            put(COLUMN_PUBLISHED_AT_ARTICULO, articulo.publishedAt)
+            put(COLUMN_URL_ARTICULO, articulo.url)
+            put(COLUMN_IMAGE_URL_ARTICULO, articulo.imagenurl)
+        }
+        db.insert(TABLE_NAME_ARTICULOS, null, values)
+        db.close()
+    }
+
+
+    fun getAllArticulos(): List<Articulo> {
+        val listaDeArticulos = mutableListOf<Articulo>()
+        val db: SQLiteDatabase = this.readableDatabase
+        val cursor: Cursor? = db.rawQuery("SELECT * FROM $TABLE_NAME_ARTICULOS", null)
+
+        cursor?.let {
+            if (it.moveToFirst()) {
+                do {
+                    // Asegúrate de que los índices no sean negativos
+                    val articleIdIndex = it.getColumnIndex(COLUMN_ID_ARTICULO)
+                    val titleIndex = it.getColumnIndex(COLUMN_TITLE_ARTICULO)
+                    // Verifica que los índices sean válidos
+                    if (articleIdIndex >= 0 && titleIndex >= 0) {
+                        val articulo = Articulo(
+                            articleId = it.getInt(articleIdIndex),
+                            title = it.getString(titleIndex),
+                            abstract = it.getString(it.getColumnIndexOrThrow(COLUMN_BODY_ARTICULO)),
+                            author = it.getString(it.getColumnIndexOrThrow(COLUMN_AUTHOR_ARTICULO)),
+                            publishedAt = it.getString(it.getColumnIndexOrThrow(COLUMN_PUBLISHED_AT_ARTICULO)),
+                            url = it.getString(it.getColumnIndexOrThrow(COLUMN_URL_ARTICULO)),
+                            imagenurl = it.getString(it.getColumnIndexOrThrow(COLUMN_IMAGE_URL_ARTICULO))
+                        )
+                        listaDeArticulos.add(articulo)
+                    } else {
+                        Log.e("MyDatabaseHelper", "Invalid column index.")
+                    }
+                } while (it.moveToNext())
+            } else {
+                Log.e("MyDatabaseHelper", "No articles found in the database.")
+            }
+        } ?: run {
+            Log.e("MyDatabaseHelper", "Cursor is null.")
+        }
+        db.close()
+        return listaDeArticulos
+    }
+
+
+
+    fun getArticuloById(id: Int): Articulo? {
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_NAME_ARTICULOS,
+            null,
+            "$COLUMN_ID_ARTICULO = ?",
+            arrayOf(id.toString()),
+            null,
+            null,
+            null
+        )
+
+        return if (cursor.moveToFirst()) {
+            val articulo = Articulo(
+                articleId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID_ARTICULO)),
+                title = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TITLE_ARTICULO)),
+                abstract = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BODY_ARTICULO)),
+                author = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_AUTHOR_ARTICULO)),
+                publishedAt = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PUBLISHED_AT_ARTICULO)),
+                url = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_URL_ARTICULO)),
+                imagenurl = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_IMAGE_URL_ARTICULO))
+            )
+            cursor.close()
+            db.close()
+            articulo
+        } else {
+            cursor.close()
+            db.close()
+            null
+        }
+    }
+
+
+    fun insertOrUpdateArticulo(articulo: Articulo) {
+        if (!articuloExists(articulo.url)) {
+            val db = writableDatabase
+            val values = ContentValues().apply {
+                put(COLUMN_TITLE_ARTICULO, articulo.title)
+                put(COLUMN_BODY_ARTICULO, articulo.abstract)
+                put(COLUMN_PUBLISHED_AT_ARTICULO, articulo.publishedAt)
+                put(COLUMN_URL_ARTICULO, articulo.url)
+                put(COLUMN_IMAGE_URL_ARTICULO, articulo.imagenurl)
+            }
+            db.insert(TABLE_NAME_ARTICULOS, null, values)
+            db.close()
+        } else {
+            Log.d("MyDatabaseHelper", "Artículo ya existe: ${articulo.title}")
+        }
+    }
+
+
+
+    fun articuloExists(url: String): Boolean {
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_NAME_ARTICULOS,
+            arrayOf(COLUMN_URL_ARTICULO),
+            "$COLUMN_URL_ARTICULO = ?",
+            arrayOf(url),
+            null,
+            null,
+            null
+        )
+        val exists = cursor.count > 0
+        cursor.close()
+        return exists
+    }
 
 }
