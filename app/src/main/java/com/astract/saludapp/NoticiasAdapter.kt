@@ -48,12 +48,18 @@ class NoticiasAdapter(
             // Imprimir la URL de la imagen antes de cargarla
             Log.d("NoticiasAdapter", "Cargando imagen desde: ${noticia.urlToImage}")
 
-            // Cargar la imagen usando Glide
-            Glide.with(itemView.context)
-                .load(noticia.urlToImage)
-                .placeholder(R.drawable.no_image) // Imagen de carga o error
-                .error(R.drawable.no_image)
-                .into(imageView)
+            // Verificar si la URL de la imagen es nula o vacía
+            if (noticia.urlToImage.isNotEmpty()) {
+                // Cargar la imagen usando Glide
+                Glide.with(itemView.context)
+                    .load(noticia.urlToImage)
+                    .placeholder(R.drawable.no_image) // Imagen de carga o error
+                    .error(R.drawable.no_image) // Imagen en caso de error
+                    .into(imageView)
+            } else {
+                // Si no hay URL, establece una imagen predeterminada
+                imageView.setImageResource(R.drawable.no_image)
+            }
 
             // Asignar el OnClickListener al cardButton
             cardButton.setOnClickListener {
@@ -67,10 +73,5 @@ class NoticiasAdapter(
             intent.putExtra("NOTICIA_ID", noticia.id) // O cualquier otro dato que necesites pasar
             context.startActivity(intent) // Iniciar la nueva actividad
         }
-
-
-
     }
-
-
 }

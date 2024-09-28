@@ -37,21 +37,24 @@ class ArticuloAdapter(
     class ArticuloViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val titleTextView: TextView = itemView.findViewById(R.id.cardTitleArticulo)
         private val subtitleTextView: TextView = itemView.findViewById(R.id.cardSubtitleArticulo)
-        private val imageView: ImageView =
-            itemView.findViewById(R.id.cardImageArticulo) // ImageView para la imagen
-        private val cardButton: View =
-            itemView.findViewById(R.id.cardButtonArticulo) // Usando el LinearLayout como botón
+        private val imageView: ImageView = itemView.findViewById(R.id.cardImageArticulo)
+        private val cardButton: View = itemView.findViewById(R.id.cardButtonArticulo)
 
         fun bind(articulo: Articulo, onClick: (Articulo) -> Unit) {
             titleTextView.text = articulo.title
             subtitleTextView.text = articulo.abstract
 
-            // Cargar la imagen usando Glide
-            Glide.with(itemView.context)
-                .load(articulo.imagenurl)
-                .placeholder(R.drawable.no_image) // Imagen de carga o error
-                .error(R.drawable.no_image)
-                .into(imageView)
+            // Verificar si la URL de la imagen es nula o vacía
+            if (articulo.imagenurl.isNotEmpty()) {
+                Glide.with(itemView.context)
+                    .load(articulo.imagenurl)
+                    .placeholder(R.drawable.no_image) // Imagen de carga
+                    .error(R.drawable.no_image) // Imagen en caso de error
+                    .into(imageView)
+            } else {
+                // Si no hay URL, establece una imagen predeterminada
+                imageView.setImageResource(R.drawable.no_image)
+            }
 
             // Asignar el OnClickListener al cardButton
             cardButton.setOnClickListener {
@@ -60,13 +63,11 @@ class ArticuloAdapter(
             }
         }
 
-
         private fun openDetailActivity(context: Context, articulo: Articulo) {
             val intent = Intent(context, ArticuloCarga::class.java)
             intent.putExtra("ARTICULO_ID", articulo.articleId)
             context.startActivity(intent)
-
         }
-
     }
+
 }

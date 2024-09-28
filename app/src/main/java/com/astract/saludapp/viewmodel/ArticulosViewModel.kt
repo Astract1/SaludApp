@@ -20,7 +20,6 @@ class ArticuloViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
 
     private val _articulos = MutableLiveData<List<Articulo>>()
     private val _articulo = MutableLiveData<Articulo?>()
-    val articulo: LiveData<Articulo?> get() = _articulo
     val articulos: LiveData<List<Articulo>> get() = _articulos
 
     private val apiKey = "utwTdMiTaapWmG2FPffXrdtiA2lVyqBX"
@@ -88,7 +87,6 @@ class ArticuloViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
 
             // Crear instancia de Articulo
             val articulo = Articulo(
-                articleId = 0, // Establecer un ID por defecto o manejarlo como corresponda
                 title = title,
                 abstract = abstract,
                 url = url,
@@ -103,7 +101,7 @@ class ArticuloViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
             dbHelper.insertOrUpdateArticulo(articulo)
         }
 
-        _articulos.postValue(articles) // Publicar la lista de artículos
+        _articulos.postValue(articles)
     }
 
     private fun showToast(context: Context, message: String) {
@@ -123,12 +121,6 @@ class ArticuloViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
         }
     }
 
-    fun getArticuloById(id: Int) {
-        viewModelScope.launch {
-            val result = dbHelper.getArticuloById(id)
-            _articulo.postValue(result)
-        }
-    }
 }
 
 

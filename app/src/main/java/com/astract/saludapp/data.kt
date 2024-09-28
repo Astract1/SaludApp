@@ -9,7 +9,7 @@ data class Source(
 
 data class Noticia(
     val id: Int = 0,
-    val source: Source, // Cambiado a Source
+    val source: Source,
     val author: String = "",
     val title: String = "",
     val description: String = "",

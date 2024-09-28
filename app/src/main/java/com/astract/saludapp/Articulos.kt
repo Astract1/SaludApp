@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
+import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -24,10 +25,19 @@ class Articulos : AppCompatActivity() {
     private lateinit var searchView: SearchView
     private lateinit var noResultsTextView: TextView
     private lateinit var progressBar: ProgressBar
+    private lateinit var btnVolver: ImageButton
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_articulos) // Asegúrate de que este es tu layout
+
+
+        btnVolver = findViewById(R.id.btnVolverArticulos)
+
+        btnVolver.setOnClickListener() {
+            finish()
+        }
 
         dbHelper = MyDatabaseHelper(this)
 
