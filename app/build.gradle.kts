@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("kotlin-kapt")
+    id("androidx.navigation.safeargs.kotlin")
 
 }
 
@@ -63,6 +64,7 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.fragment)
     implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.viewpager2:viewpager2:1.1.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
     kapt("com.github.bumptech.glide:compiler:4.16.0")
     kapt("androidx.room:room-runtime:2.6.1")

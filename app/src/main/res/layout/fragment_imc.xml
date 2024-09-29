@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".imc">
+    android:layout_height="match_parent">
 
     <TextView
         android:id="@+id/fecha2"
@@ -56,9 +56,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <!-- TextView alineado a la izquierda -->
-
-            <!-- FrameLayout interior (cuadrado blanco) alineado a la derecha -->
             <TextView
                 android:id="@+id/calificacionactual"
                 android:layout_width="wrap_content"
@@ -86,7 +83,6 @@
                 app:layout_constraintStart_toEndOf="@+id/calificacionactual"
                 app:layout_constraintTop_toTopOf="parent">
 
-                <!-- TextView dentro del cuadrado blanco -->
                 <TextView
                     android:id="@+id/valor_peso"
                     android:layout_width="wrap_content"
@@ -191,7 +187,6 @@
                 android:inputType="number" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Campo para el peso -->
         <TextView
             android:id="@+id/pesokg"
             android:layout_width="wrap_content"
@@ -229,7 +224,6 @@
                 android:inputType="numberDecimal" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Botón "Calcular Peso" -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/calcular_peso"
             android:layout_width="wrap_content"
@@ -262,6 +256,32 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/rectangulo2" />
+
+    <TextView
+        android:id="@+id/ver_historial_imc"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:text="Ver Historial IMC"
+        android:fontFamily="@font/montserrat"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/infoimc"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/icon_arrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/baseline_keyboard_arrow_up_24"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ver_historial_imc" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

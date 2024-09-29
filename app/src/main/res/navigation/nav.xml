@@ -8,23 +8,40 @@
     <fragment
         android:id="@+id/habitos"
         android:name="com.astract.saludapp.habitos"
-        tools:layout="@layout/fragment_habitos"/>
+        tools:layout="@layout/fragment_habitos" />
+
     <fragment
         android:id="@+id/desafios"
         android:name="com.astract.saludapp.desafios"
-        tools:layout="@layout/fragment_desafios"/>
+        tools:layout="@layout/fragment_desafios" />
+
     <fragment
         android:id="@+id/imc"
         android:name="com.astract.saludapp.imc"
-        tools:layout="@layout/fragment_imc"/>
+        tools:layout="@layout/fragment_imc">
+        <action
+            android:id="@+id/action_imc_to_historial_imc"
+            app:destination="@id/historial_imc" />
+    </fragment>
+
     <fragment
         android:id="@+id/noticias"
         android:name="com.astract.saludapp.noticias"
-        tools:layout="@layout/fragment_noticias"/>
+        tools:layout="@layout/fragment_noticias" />
 
     <fragment
         android:id="@+id/para_ti"
         android:name="com.astract.saludapp.para_ti"
-        tools:layout="@layout/fragment_para_ti"/>
+        tools:layout="@layout/fragment_para_ti" />
+
+    <fragment
+        android:id="@+id/historial_imc"
+        android:name="com.astract.saludapp.Historialimc"
+        tools:layout="@layout/fragment_historialimc" />
+
+    <!-- Acción para navegar globalmente al IMC -->
+    <action
+        android:id="@+id/action_global_imc"
+        app:destination="@id/imc" />
 
 </navigation>

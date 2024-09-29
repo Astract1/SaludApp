@@ -66,29 +66,34 @@ class noticias : Fragment() {
     }
 
     private fun loadNoticiasWithDelay() {
-        // Muestra el ProgressBar y luego carga las noticias después de un retraso
         progressBar.visibility = View.VISIBLE
 
         android.os.Handler().postDelayed({
-            noticiasViewModel.fetchAndUpdateNews(requireContext())
-            noticiasViewModel.loadNoticias()
+            // Verifica que el fragmento esté adjunto a su actividad y que la vista no sea nula
+            if (isAdded && view != null) {
+                noticiasViewModel.fetchAndUpdateNews(requireContext())
+                noticiasViewModel.loadNoticias()
 
-            // Observa el LiveData de noticias
-            noticiasViewModel.noticias.observe(viewLifecycleOwner) { listaDeNoticias ->
-                progressBar.visibility = View.GONE // Oculta el ProgressBar al recibir datos
-                val noticiasFiltradas = listaDeNoticias.filterNot { noticia ->
-                    noticia.title.contains("removed", ignoreCase = true) ||
-                            noticia.description.contains("removed", ignoreCase = true) ||
-                            noticia.title.contains("[Removed]", ignoreCase = true)
+                // Observa el LiveData de noticias
+                noticiasViewModel.noticias.observe(viewLifecycleOwner) { listaDeNoticias ->
+                    if (view != null) { // Verifica que la vista no sea nula
+                        progressBar.visibility = View.GONE
+                        val noticiasFiltradas = listaDeNoticias.filterNot { noticia ->
+                            noticia.title.contains("removed", ignoreCase = true) ||
+                                    noticia.description.contains("removed", ignoreCase = true) ||
+                                    noticia.title.contains("[Removed]", ignoreCase = true)
+                        }
+                        adapter.updateNoticias(noticiasFiltradas)
+
+                        // Mostrar u ocultar el TextView de "No se encontraron noticias"
+                        noResultsTextView.visibility =
+                            if (noticiasFiltradas.isEmpty()) View.VISIBLE else View.GONE
+                    }
                 }
-                adapter.updateNoticias(noticiasFiltradas)
-
-                // Mostrar u ocultar el TextView de "No se encontraron noticias"
-                noResultsTextView.visibility =
-                    if (noticiasFiltradas.isEmpty()) View.VISIBLE else View.GONE
             }
-        }, 1000) // Retraso de 1 segundo (1000 ms)
+        }, 1000)
     }
+
 
     private fun setupSearchView() {
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
