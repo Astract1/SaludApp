@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".Historialimc">
 
     <!-- TextView para volver a la calculadora IMC -->
@@ -28,4 +29,22 @@
         android:rotation="180"
         android:src="@drawable/baseline_keyboard_arrow_up_24" />
 
-</FrameLayout>
+    <!-- LineChart para visualizar el IMC con relleno degradado -->
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/lineChart"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- RecyclerView para mostrar el historial de IMC -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewHistorial"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="16dp"
+        android:clipToPadding="false"
+        android:scrollbars="vertical" />
+
+</LinearLayout>

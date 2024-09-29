@@ -4,9 +4,11 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteException
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import com.astract.saludapp.Articulo
+import com.astract.saludapp.HistorialIMCData
 import com.astract.saludapp.Noticia
 import com.astract.saludapp.Source
 import com.astract.saludapp.models.NoticiaEntity
@@ -45,6 +47,16 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
         const val COLUMN_URL_ARTICULO = "url"
         const val COLUMN_IMAGE_URL_ARTICULO = "imageUrl"
 
+
+        //Tabla de Historial de IMC
+
+        const val TABLE_NAME_IMC = "historial_imc"
+        const val COLUMN_ID_IMC = "id"
+        const val COLUMN_IMC = "imc"
+        const val COLUMN_FECHA = "fecha"
+        const val COLUMN_PESO = "peso"
+        const val COLUMN_ALTURA = "altura"
+
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -72,14 +84,24 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
                 "$COLUMN_URL_ARTICULO TEXT," +
                 "$COLUMN_IMAGE_URL_ARTICULO TEXT)")
 
+
+        val createTableIMC = ("CREATE TABLE $TABLE_NAME_IMC (" +
+                "$COLUMN_ID_IMC INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "$COLUMN_IMC REAL," +
+                "$COLUMN_FECHA TEXT," +
+                "$COLUMN_PESO REAL," +
+                "$COLUMN_ALTURA REAL)")
+
         db.execSQL(createTable)
         db.execSQL(createTableArticulos)
+        db.execSQL(createTableIMC)
     }
 
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL("DROP TABLE IF EXISTS $TABLE_NAME")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_NAME_ARTICULOS")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_NAME_IMC")
         onCreate(db)
     }
 
@@ -351,6 +373,88 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
             Log.e("MyDatabaseHelper", "Error al actualizar el artículo: ${articulo.title}")
         }
         db.close()
+    }
+
+    fun insertHistorialIMC(imc: Double, fecha: String, peso: Double, altura: Double) {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COLUMN_IMC, imc)
+            put(COLUMN_FECHA, fecha)
+            put(COLUMN_PESO, peso)
+            put(COLUMN_ALTURA, altura)
+        }
+        val id = db.insert(TABLE_NAME_IMC, null, values)
+        if (id == -1L) {
+            Log.e("MyDatabaseHelper", "Error al insertar el IMC: $imc")
+        } else {
+            Log.d("MyDatabaseHelper", "IMC insertado con ID: $id")
+        }
+        db.close()
+    }
+
+
+    fun getAllHistorialIMC(): List<HistorialIMCData> {
+        val listaDeIMC = mutableListOf<HistorialIMCData>()
+        val db: SQLiteDatabase = this.readableDatabase
+
+        // Verificar si la tabla existe
+        if (!checkTableExists()) {
+            Log.e("MyDatabaseHelper", "La tabla $TABLE_NAME_IMC no existe.")
+            return listaDeIMC // Retornar lista vacía si la tabla no existe
+        }
+
+        var cursor: Cursor? = null
+
+        try {
+            // Realizar la consulta a la tabla
+            val query = "SELECT * FROM $TABLE_NAME_IMC"
+            cursor = db.rawQuery(query, null)
+
+            // Procesar el cursor si hay resultados
+            if (cursor.moveToFirst()) {
+                do {
+                    val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID_IMC))
+                    val imc = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_IMC))
+                    val fecha = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FECHA))
+                    val peso = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_PESO))
+                    val altura = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_ALTURA))
+
+                    // Crear el objeto HistorialIMC y agregarlo a la lista
+                    listaDeIMC.add(HistorialIMCData(id,fecha, imc, peso, altura))
+                } while (cursor.moveToNext())
+            } else {
+                Log.e("MyDatabaseHelper", "No se encontró historial IMC.")
+            }
+        } catch (e: SQLiteException) {
+            Log.e("MyDatabaseHelper", "Error al obtener historial IMC: ${e.message}")
+        } finally {
+            // Cerrar el cursor y la base de datos
+            cursor?.close()
+            db.close()
+        }
+
+        return listaDeIMC
+    }
+
+    fun checkTableExists(): Boolean {
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='$TABLE_NAME_IMC'", null)
+        val exists = cursor.count > 0
+        cursor.close()
+        return exists
+    }
+
+    fun deleteHistorialIMCById(id: Int): Boolean {
+        val db: SQLiteDatabase = this.writableDatabase
+        return try {
+            val rowsAffected = db.delete(TABLE_NAME_IMC, "$COLUMN_ID = ?", arrayOf(id.toString()))
+            rowsAffected > 0 // Retorna true si se eliminó al menos un registro
+        } catch (e: SQLiteException) {
+            Log.e("MyDatabaseHelper", "Error al eliminar historial IMC: ${e.message}")
+            false
+        } finally {
+            db.close() // Cerrar la base de datos
+        }
     }
 
 }

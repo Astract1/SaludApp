@@ -15,9 +15,11 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.astract.saludapp.database.MyDatabaseHelper
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
 
 class imc : Fragment() {
     private lateinit var pesoEditText: TextInputEditText
@@ -25,12 +27,8 @@ class imc : Fragment() {
     private lateinit var valorPesoTextView: TextView
     private lateinit var calcularButton: MaterialButton
     private lateinit var iconArrow: ImageView
-    private lateinit var rootView: View  // Vista raíz del fragmento
-
-    // Lista para almacenar los pesos
-    companion object {
-        val historialPesos = mutableListOf<Double>()
-    }
+    private lateinit var rootView: View
+    private lateinit var dbHelper: MyDatabaseHelper
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,7 +40,10 @@ class imc : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view ,savedInstanceState)
+        super.onViewCreated(view, savedInstanceState)
+
+        // Inicializar el dbHelper aquí
+        dbHelper = MyDatabaseHelper(requireContext())
 
         val fechaTextView: TextView = view.findViewById(R.id.fecha2)
         val fechaActual = obtenerFechaActual()
@@ -88,6 +89,21 @@ class imc : Fragment() {
         val peso = pesoEditText.text.toString().toDoubleOrNull()
         val altura = alturaEditText.text.toString().toDoubleOrNull()
 
+
+
+        // Validar entrada de altura
+        if (altura == null) {
+            alturaEditText.error = "La altura no puede estar vacía"
+            return
+        }
+
+
+        if (peso == null) {
+            pesoEditText.error = "El peso no puede estar vacío"
+            return
+        }
+
+
         if (peso != null && altura != null) {
             val alturaMetros = altura / 100  // Convertir altura a metros
             val imc = peso / (alturaMetros * alturaMetros)
@@ -100,14 +116,17 @@ class imc : Fragment() {
                     valorPesoTextView.setTextColor(Color.BLUE)
                     valorPesoTextView.text = "Bajo peso\nIMC: %.2f".format(imc)
                 }
+
                 imc in 18.5..24.9 -> {
                     valorPesoTextView.setTextColor(Color.GREEN)
                     valorPesoTextView.text = "Normal\nIMC: %.2f".format(imc)
                 }
+
                 imc in 25.0..29.9 -> {
                     valorPesoTextView.setTextColor(Color.YELLOW)
                     valorPesoTextView.text = "Sobrepeso\nIMC: %.2f".format(imc)
                 }
+
                 else -> {
                     valorPesoTextView.setTextColor(Color.RED)
                     valorPesoTextView.text = "Obesidad\nIMC: %.2f".format(imc)
@@ -134,11 +153,18 @@ class imc : Fragment() {
     }
 
     private fun guardarEnHistorial(imc: Double, peso: Double, altura: Double) {
+        // Obtener la fecha actual
+        val fechaActual = obtenerFechaActual()
 
-        historialPesos.add(peso)
+        // Llamar a la función insertHistorialIMC
+        dbHelper.insertHistorialIMC(imc, fechaActual, peso, altura)
 
         // Mostrar un Toast como confirmación
-        Toast.makeText(requireContext(), "IMC guardado en historial: IMC: ${"%.2f".format(imc)}, Peso: $peso kg, Altura: $altura cm", Toast.LENGTH_LONG).show()
+        Toast.makeText(
+            requireContext(),
+            "IMC guardado en historial: IMC: ${"%.2f".format(imc)}, Peso: $peso kg, Altura: $altura cm",
+            Toast.LENGTH_LONG
+        ).show()
     }
 
     private fun obtenerFechaActual(): String {

@@ -31,3 +31,13 @@ data class Articulo(
     val imagenurl: String = "",
     val author: String = ""
 )
+
+data class HistorialIMCData(
+    val id: Int=0,
+    val fecha: String,
+    val resultadoIMC: Double,
+    val peso: Double,
+    val altura: Double
+
+)
+
