@@ -8,9 +8,9 @@
         android:title="@string/habitos" />
 
     <item
-        android:id="@+id/para_ti"
+        android:id="@+id/Sellos_Negros"
         android:icon="@drawable/parati_icon"
-        android:title="@string/parati" />
+        android:title="@string/Sellos_Negros" />
     <item
         android:id="@+id/desafios"
         android:icon="@drawable/desafios_icon"

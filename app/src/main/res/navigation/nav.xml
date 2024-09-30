@@ -30,9 +30,9 @@
         tools:layout="@layout/fragment_noticias" />
 
     <fragment
-        android:id="@+id/para_ti"
-        android:name="com.astract.saludapp.para_ti"
-        tools:layout="@layout/fragment_para_ti" />
+        android:id="@+id/Sellos_Negros"
+        android:name="com.astract.saludapp.Sellos_Negros"
+        tools:layout="@layout/fragment_sellos__negros" />
 
     <fragment
         android:id="@+id/historial_imc"

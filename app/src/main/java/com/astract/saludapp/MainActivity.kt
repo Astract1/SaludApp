@@ -47,8 +47,8 @@ class MainActivity : AppCompatActivity() {
                         navigateToFragment(navController, currentDestinationId, R.id.noticias)
                         true
                     }
-                    R.id.para_ti -> {
-                        navigateToFragment(navController, currentDestinationId, R.id.para_ti)
+                    R.id.Sellos_Negros -> {
+                        navigateToFragment(navController, currentDestinationId, R.id.Sellos_Negros)
                         true
                     }
                     R.id.historial_imc -> {

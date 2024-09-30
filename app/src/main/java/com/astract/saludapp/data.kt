@@ -41,3 +41,20 @@ data class HistorialIMCData(
 
 )
 
+
+data class SelloNegro(
+    val id: Int,
+    val nombre: String,
+    val resumen: String,
+    val caracteristicas: List<String>,
+    val detalles: String,
+    val recomendaciones: String,
+    val ejemplos: List<String>,
+    val imagen_url: String
+)
+
+
+data class SellosResponse(val sellos: List<SelloNegro>)
+
+
+
