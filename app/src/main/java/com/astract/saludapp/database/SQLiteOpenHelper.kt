@@ -457,4 +457,19 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
         }
     }
 
+
+    fun obtenerUltimoIMC(): Double?{
+        val db = this.readableDatabase
+        val query = "SELECT $COLUMN_IMC FROM $TABLE_NAME_IMC ORDER BY $COLUMN_ID_IMC DESC LIMIT 1"
+        val cursor = db.rawQuery(query, null)
+        val imc: Double? = if (cursor.moveToFirst()) {
+            cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_IMC))
+        } else {
+            null
+        }
+        cursor.close()
+        db.close()
+        return imc
+    }
+
 }

@@ -53,6 +53,8 @@ class imc : Fragment() {
 
         dbHelper = MyDatabaseHelper(requireContext())
 
+        // Inicializamos los elementos de la vista
+        val ultmoIMC = dbHelper.obtenerUltimoIMC()
         val fechaTextView: TextView = view.findViewById(R.id.fecha2)
         val fechaActual = obtenerFechaActual()
         fechaTextView.text = fechaActual
@@ -66,18 +68,45 @@ class imc : Fragment() {
         botonGuardarMeta = view.findViewById(R.id.btnGuardarMetaIMC)
         valorMeta = view.findViewById(R.id.inputMetaIMC)
 
+        // Referencia al TextView
+        val verHistorialIMC = view.findViewById<TextView>(R.id.ver_historial_imc)
+
+        if (ultmoIMC != null) {
+            valorPesoTextView.text = "IMC: %.2f".format(ultmoIMC)
+
+            // Aplicar colores según la categoría del IMC guardado
+            when {
+                ultmoIMC < 18.5 -> {
+                    valorPesoTextView.setTextColor(Color.BLUE)
+                    valorPesoTextView.text = "Bajo peso\nIMC: %.2f".format(ultmoIMC)
+                }
+                ultmoIMC in 18.5..24.9 -> {
+                    valorPesoTextView.setTextColor(Color.GREEN)
+                    valorPesoTextView.text = "Normal\nIMC: %.2f".format(ultmoIMC)
+                }
+                ultmoIMC in 25.0..29.9 -> {
+                    valorPesoTextView.setTextColor(Color.YELLOW)
+                    valorPesoTextView.text = "Sobrepeso\nIMC: %.2f".format(ultmoIMC)
+                }
+                else -> {
+                    valorPesoTextView.setTextColor(Color.RED)
+                    valorPesoTextView.text = "Obesidad\nIMC: %.2f".format(ultmoIMC)
+                }
+            }
+        } else {
+            valorPesoTextView.text = "IMC: 0.0"
+        }
 
 
         calcularButton.setOnClickListener {
             calcularIMC()
         }
 
-
         botonGuardarMeta.setOnClickListener {
             guardarMetaIMC()
         }
 
-        iconArrow.setOnClickListener {
+        val navigateToHistorial = {
             val scrollAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.scroll_up)
             rootView.startAnimation(scrollAnimation)
 
@@ -92,8 +121,11 @@ class imc : Fragment() {
                 override fun onAnimationRepeat(animation: Animation?) {}
             })
         }
-    }
 
+        // Asignar el mismo listener tanto al TextView como a la flecha
+        iconArrow.setOnClickListener { navigateToHistorial() }
+        verHistorialIMC.setOnClickListener { navigateToHistorial() }
+    }
     private fun calcularIMC() {
         val peso = pesoEditText.text.toString().toDoubleOrNull()
         val altura = alturaEditText.text.toString().toDoubleOrNull()

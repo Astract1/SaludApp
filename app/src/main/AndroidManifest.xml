@@ -19,6 +19,9 @@
         android:theme="@style/Theme.SaludApp"
         tools:targetApi="31">
         <activity
+            android:name=".perfil"
+            android:exported="false" />
+        <activity
             android:name=".info_sellos_negros"
             android:exported="false" />
         <activity

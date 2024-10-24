@@ -1,0 +1,130 @@
+[
+  {
+    "titulo": "Reto de Hidratación Diaria",
+    "descripcion": "Bebe al menos 2 litros de agua al día para mejorar tu salud y bienestar.",
+    "disponibilidad": "Disponible desde: Día 1, Semana 1 hasta: Día 7, Semana 2"
+  },
+  {
+    "titulo": "Reto de Ejercicio Semanal",
+    "descripcion": "Realiza al menos 30 minutos de ejercicio diario durante una semana.",
+    "disponibilidad": "Disponible desde: Día 8, Semana 1 hasta: Día 14, Semana 2"
+  },
+
+  {
+    "titulo": "Reto de Meditación Diaria",
+    "descripcion": "Medita al menos 10 minutos cada día para reducir el estrés.",
+    "disponibilidad": "Disponible desde: Día 1, Semana 1 hasta: Día 14, Semana 2"
+  },
+  {
+    "titulo": "Reto de Caminata Diaria",
+    "descripcion": "Camina al menos 5,000 pasos cada día.",
+    "disponibilidad": "Disponible desde: Día 1, Semana 1 hasta: Día 7, Semana 1"
+  },
+  {
+    "titulo": "Reto de No Azúcar",
+    "descripcion": "Evita consumir azúcar procesada durante una semana.",
+    "disponibilidad": "Disponible desde: Día 8, Semana 1 hasta: Día 14, Semana 2"
+  },
+  {
+    "titulo": "Reto de Sueño Saludable",
+    "descripcion": "Duerme al menos 8 horas cada noche.",
+    "disponibilidad": "Disponible desde: Día 1, Semana 2 hasta: Día 14, Semana 3"
+  },
+  {
+    "titulo": "Reto de Yoga Matutino",
+    "descripcion": "Practica 15 minutos de yoga cada mañana.",
+    "disponibilidad": "Disponible desde: Día 15, Semana 2 hasta: Día 21, Semana 3"
+  },
+  {
+    "titulo": "Reto de Frutas y Verduras",
+    "descripcion": "Consume al menos 5 porciones de frutas y verduras al día.",
+    "disponibilidad": "Disponible desde: Día 1, Semana 3 hasta: Día 7, Semana 4"
+  },
+  {
+    "titulo": "Reto de No Fumar",
+    "descripcion": "Abstente de fumar durante dos semanas.",
+    "disponibilidad": "Disponible desde: Día 8, Semana 3 hasta: Día 21, Semana 5"
+  },
+  {
+    "titulo": "Reto de Hidratación Avanzada",
+    "descripcion": "Bebe al menos 3 litros de agua cada día.",
+    "disponibilidad": "Disponible desde: Día 15, Semana 4 hasta: Día 21, Semana 5"
+  },
+  {
+    "titulo": "Reto de Ejercicio Avanzado",
+    "descripcion": "Realiza una sesión de ejercicio intenso de 45 minutos tres veces a la semana.",
+    "disponibilidad": "Disponible desde: Día 22, Semana 5 hasta: Día 28, Semana 6"
+  },
+  {
+    "titulo": "Reto de Lectura",
+    "descripcion": "Lee al menos 30 minutos cada día.",
+    "disponibilidad": "Disponible desde: Día 1, Semana 7 hasta: Día 7, Semana 7"
+  },
+  {
+    "titulo": "Reto de Desayuno Saludable",
+    "descripcion": "Desayuna algo saludable todos los días.",
+    "disponibilidad": "Disponible desde: Día 8, Semana 7 hasta: Día 14, Semana 8"
+  },
+  {
+    "titulo": "Reto de Gratitud",
+    "descripcion": "Escribe tres cosas por las que estás agradecido cada día.",
+    "disponibilidad": "Disponible desde: Día 15, Semana 8 hasta: Día 21, Semana 9"
+  },
+  {
+    "titulo": "Reto de Estiramiento",
+    "descripcion": "Dedica 10 minutos a estirarte cada día.",
+    "disponibilidad": "Disponible desde: Día 22, Semana 9 hasta: Día 28, Semana 10"
+  },
+  {
+    "titulo": "Reto de Reducción de Cafeína",
+    "descripcion": "Reduce el consumo de cafeína a una taza al día.",
+    "disponibilidad": "Disponible desde: Día 1, Semana 11 hasta: Día 7, Semana 11"
+  },
+  {
+    "titulo": "Reto de Sin Electrónicos antes de Dormir",
+    "descripcion": "No uses dispositivos electrónicos una hora antes de dormir.",
+    "disponibilidad": "Disponible desde: Día 8, Semana 11 hasta: Día 14, Semana 12"
+  },
+  {
+    "titulo": "Reto de No Comida Chatarra",
+    "descripcion": "Evita la comida chatarra durante dos semanas.",
+    "disponibilidad": "Disponible desde: Día 15, Semana 12 hasta: Día 28, Semana 13"
+  },
+  {
+    "titulo": "Reto de Practicar un Nuevo Hobby",
+    "descripcion": "Dedica al menos 30 minutos diarios a un nuevo hobby.",
+    "disponibilidad": "Disponible desde: Día 1, Semana 14 hasta: Día 7, Semana 14"
+  },
+  {
+    "titulo": "Reto de Menos Sal",
+    "descripcion": "Reduce el consumo de sal en tus comidas.",
+    "disponibilidad": "Disponible desde: Día 8, Semana 14 hasta: Día 14, Semana 15"
+  },
+  {
+    "titulo": "Reto de Postura Correcta",
+    "descripcion": "Practica mantener una postura correcta durante el día.",
+    "disponibilidad": "Disponible desde: Día 15, Semana 15 hasta: Día 21, Semana 16"
+  },
+  {
+    "titulo": "Reto de Desconexión Digital",
+    "descripcion": "Desconéctate de las redes sociales durante una semana.",
+    "disponibilidad": "Disponible desde: Día 22, Semana 16 hasta: Día 28, Semana 17"
+  },
+  {
+    "titulo": "Reto de Risa Diaria",
+    "descripcion": "Dedica al menos 5 minutos al día a reír.",
+    "disponibilidad": "Disponible desde: Día 1, Semana 18 hasta: Día 7, Semana 18"
+  },
+  {
+    "titulo": "Reto de Respeto por el Medio Ambiente",
+    "descripcion": "Haz algo positivo por el medio ambiente cada día.",
+    "disponibilidad": "Disponible desde: Día 8, Semana 18 hasta: Día 14, Semana 19"
+  },
+  {
+    "titulo": "Reto de Ayuno Intermitente",
+    "descripcion": "Prueba el ayuno intermitente durante una semana.",
+    "disponibilidad": "Disponible desde: Día 15, Semana 19 hasta: Día 21, Semana 20"
+  }
+
+
+]
