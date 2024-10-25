@@ -1,130 +1,250 @@
 [
+
   {
-    "titulo": "Reto de Hidratación Diaria",
-    "descripcion": "Bebe al menos 2 litros de agua al día para mejorar tu salud y bienestar.",
-    "disponibilidad": "Disponible desde: Día 1, Semana 1 hasta: Día 7, Semana 2"
+    "titulo": "Reto de Aumento de Peso Saludable",
+    "descripcion": "Incrementa tu ingesta calórica con alimentos nutritivos para alcanzar un peso saludable.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 0.0, "maximo": 18.5}
   },
   {
-    "titulo": "Reto de Ejercicio Semanal",
-    "descripcion": "Realiza al menos 30 minutos de ejercicio diario durante una semana.",
-    "disponibilidad": "Disponible desde: Día 8, Semana 1 hasta: Día 14, Semana 2"
+    "titulo": "Reto de Ejercicio de Fuerza",
+    "descripcion": "Realiza ejercicios de fuerza al menos 3 veces a la semana para aumentar tu masa muscular.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 0.0, "maximo": 18.5}
+  },
+  {
+    "titulo": "Reto de Comidas Balanceadas",
+    "descripcion": "Consume al menos 5 comidas al día, incluyendo proteínas, carbohidratos y grasas saludables.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 0.0, "maximo": 18.5}
+  },
+  {
+    "titulo": "Reto de Suplementación Nutricional",
+    "descripcion": "Incorpora suplementos de vitaminas y minerales para asegurar una nutrición adecuada.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 0.0, "maximo": 18.5}
+  },
+  {
+    "titulo": "Reto de Hidratación Aumentada",
+    "descripcion": "Bebe al menos 2.5 litros de agua al día para ayudar a tu metabolismo y bienestar general.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 0.0, "maximo": 18.5}
+  },
+  {
+    "titulo": "Reto de Entrenamiento Aeróbico",
+    "descripcion": "Haz 30 minutos de ejercicio aeróbico, como correr o nadar, al menos 5 veces a la semana.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 0.0, "maximo": 18.5}
+  },
+  {
+    "titulo": "Reto de Comida Casera",
+    "descripcion": "Cocina tus propias comidas para asegurarte de que son nutritivas y adecuadas para tu aumento de peso.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 0.0, "maximo": 18.5}
+  },
+  {
+    "titulo": "Reto de Snacks Saludables",
+    "descripcion": "Incluye snacks saludables entre comidas para incrementar tu ingesta calórica.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 0.0, "maximo": 18.5}
+  },
+  {
+    "titulo": "Reto de Registro de Comidas",
+    "descripcion": "Lleva un diario de tus comidas para controlar tu ingesta calórica diaria.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 0.0, "maximo": 18.5}
+  },
+  {
+    "titulo": "Reto de Dormir Adecuadamente",
+    "descripcion": "Asegúrate de dormir al menos 7-8 horas cada noche para ayudar a tu recuperación y salud general.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 0.0, "maximo": 18.5}
   },
 
   {
+    "titulo": "Reto de Hidratación Diaria",
+    "descripcion": "Bebe al menos 2 litros de agua al día para mejorar tu salud y bienestar.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 18.5, "maximo": 24.9}
+  },
+  {
     "titulo": "Reto de Meditación Diaria",
     "descripcion": "Medita al menos 10 minutos cada día para reducir el estrés.",
-    "disponibilidad": "Disponible desde: Día 1, Semana 1 hasta: Día 14, Semana 2"
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 18.5, "maximo": 24.9}
   },
   {
-    "titulo": "Reto de Caminata Diaria",
-    "descripcion": "Camina al menos 5,000 pasos cada día.",
-    "disponibilidad": "Disponible desde: Día 1, Semana 1 hasta: Día 7, Semana 1"
+    "titulo": "Reto de Alimentación Saludable",
+    "descripcion": "Incluye al menos 5 porciones de frutas y verduras en tu dieta diaria.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 18.5, "maximo": 24.9}
   },
   {
-    "titulo": "Reto de No Azúcar",
-    "descripcion": "Evita consumir azúcar procesada durante una semana.",
-    "disponibilidad": "Disponible desde: Día 8, Semana 1 hasta: Día 14, Semana 2"
+    "titulo": "Reto de Sueño Reparador",
+    "descripcion": "Duerme al menos 8 horas cada noche durante una semana.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 18.5, "maximo": 24.9}
   },
   {
-    "titulo": "Reto de Sueño Saludable",
-    "descripcion": "Duerme al menos 8 horas cada noche.",
-    "disponibilidad": "Disponible desde: Día 1, Semana 2 hasta: Día 14, Semana 3"
+    "titulo": "Reto de Reducción de Cafeína",
+    "descripcion": "Reduce el consumo de cafeína a una taza al día durante una semana.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 18.5, "maximo": 24.9}
   },
   {
-    "titulo": "Reto de Yoga Matutino",
-    "descripcion": "Practica 15 minutos de yoga cada mañana.",
-    "disponibilidad": "Disponible desde: Día 15, Semana 2 hasta: Día 21, Semana 3"
+    "titulo": "Reto de Desconexión Digital",
+    "descripcion": "Apaga tus dispositivos electrónicos una hora antes de dormir.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 18.5, "maximo": 24.9}
   },
   {
-    "titulo": "Reto de Frutas y Verduras",
-    "descripcion": "Consume al menos 5 porciones de frutas y verduras al día.",
-    "disponibilidad": "Disponible desde: Día 1, Semana 3 hasta: Día 7, Semana 4"
+    "titulo": "Reto de Postura Corporal",
+    "descripcion": "Haz ejercicios para mejorar tu postura durante 15 minutos cada día.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 18.5, "maximo": 24.9}
   },
   {
-    "titulo": "Reto de No Fumar",
-    "descripcion": "Abstente de fumar durante dos semanas.",
-    "disponibilidad": "Disponible desde: Día 8, Semana 3 hasta: Día 21, Semana 5"
+    "titulo": "Reto de Respiración Consciente",
+    "descripcion": "Practica ejercicios de respiración profunda durante 5 minutos cada día.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 18.5, "maximo": 24.9}
   },
   {
-    "titulo": "Reto de Hidratación Avanzada",
-    "descripcion": "Bebe al menos 3 litros de agua cada día.",
-    "disponibilidad": "Disponible desde: Día 15, Semana 4 hasta: Día 21, Semana 5"
-  },
-  {
-    "titulo": "Reto de Ejercicio Avanzado",
-    "descripcion": "Realiza una sesión de ejercicio intenso de 45 minutos tres veces a la semana.",
-    "disponibilidad": "Disponible desde: Día 22, Semana 5 hasta: Día 28, Semana 6"
-  },
-  {
-    "titulo": "Reto de Lectura",
-    "descripcion": "Lee al menos 30 minutos cada día.",
-    "disponibilidad": "Disponible desde: Día 1, Semana 7 hasta: Día 7, Semana 7"
-  },
-  {
-    "titulo": "Reto de Desayuno Saludable",
-    "descripcion": "Desayuna algo saludable todos los días.",
-    "disponibilidad": "Disponible desde: Día 8, Semana 7 hasta: Día 14, Semana 8"
+    "titulo": "Reto de Flexibilidad",
+    "descripcion": "Realiza ejercicios de estiramiento por 10 minutos todos los días.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 18.5, "maximo": 24.9}
   },
   {
     "titulo": "Reto de Gratitud",
     "descripcion": "Escribe tres cosas por las que estás agradecido cada día.",
-    "disponibilidad": "Disponible desde: Día 15, Semana 8 hasta: Día 21, Semana 9"
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 18.5, "maximo": 24.9}
   },
   {
-    "titulo": "Reto de Estiramiento",
-    "descripcion": "Dedica 10 minutos a estirarte cada día.",
-    "disponibilidad": "Disponible desde: Día 22, Semana 9 hasta: Día 28, Semana 10"
+    "titulo": "Reto de Ejercicio Semanal",
+    "descripcion": "Realiza al menos 30 minutos de ejercicio diario durante una semana.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 25.0, "maximo": 29.9}
   },
   {
-    "titulo": "Reto de Reducción de Cafeína",
-    "descripcion": "Reduce el consumo de cafeína a una taza al día.",
-    "disponibilidad": "Disponible desde: Día 1, Semana 11 hasta: Día 7, Semana 11"
+    "titulo": "Reto de Caminata Diaria",
+    "descripcion": "Camina al menos 5,000 pasos cada día.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 25.0, "maximo": 29.9}
   },
   {
-    "titulo": "Reto de Sin Electrónicos antes de Dormir",
-    "descripcion": "No uses dispositivos electrónicos una hora antes de dormir.",
-    "disponibilidad": "Disponible desde: Día 8, Semana 11 hasta: Día 14, Semana 12"
+    "titulo": "Reto de Ejercicio Funcional",
+    "descripcion": "Realiza ejercicios funcionales durante 20 minutos al día.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 25.0, "maximo": 29.9}
   },
   {
-    "titulo": "Reto de No Comida Chatarra",
-    "descripcion": "Evita la comida chatarra durante dos semanas.",
-    "disponibilidad": "Disponible desde: Día 15, Semana 12 hasta: Día 28, Semana 13"
+    "titulo": "Reto de Actividad de Alta Intensidad",
+    "descripcion": "Haz ejercicios de alta intensidad por 15 minutos al día.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 25.0, "maximo": 29.9}
   },
   {
-    "titulo": "Reto de Practicar un Nuevo Hobby",
-    "descripcion": "Dedica al menos 30 minutos diarios a un nuevo hobby.",
-    "disponibilidad": "Disponible desde: Día 1, Semana 14 hasta: Día 7, Semana 14"
+    "titulo": "Reto de Baile Fitness",
+    "descripcion": "Realiza una sesión de baile de 30 minutos al día.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 25.0, "maximo": 29.9}
   },
   {
-    "titulo": "Reto de Menos Sal",
-    "descripcion": "Reduce el consumo de sal en tus comidas.",
-    "disponibilidad": "Disponible desde: Día 8, Semana 14 hasta: Día 14, Semana 15"
+    "titulo": "Reto de HIIT",
+    "descripcion": "Completa una rutina de HIIT (intervalos de alta intensidad) durante 20 minutos diarios.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 25.0, "maximo": 29.9}
   },
   {
-    "titulo": "Reto de Postura Correcta",
-    "descripcion": "Practica mantener una postura correcta durante el día.",
-    "disponibilidad": "Disponible desde: Día 15, Semana 15 hasta: Día 21, Semana 16"
+    "titulo": "Reto de Levantamiento de Pesas",
+    "descripcion": "Realiza ejercicios de fuerza con pesas durante 30 minutos al día.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 25.0, "maximo": 29.9}
   },
   {
-    "titulo": "Reto de Desconexión Digital",
-    "descripcion": "Desconéctate de las redes sociales durante una semana.",
-    "disponibilidad": "Disponible desde: Día 22, Semana 16 hasta: Día 28, Semana 17"
+    "titulo": "Reto de Cardio",
+    "descripcion": "Haz 30 minutos de cardio todos los días.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 25.0, "maximo": 29.9}
   },
   {
-    "titulo": "Reto de Risa Diaria",
-    "descripcion": "Dedica al menos 5 minutos al día a reír.",
-    "disponibilidad": "Disponible desde: Día 1, Semana 18 hasta: Día 7, Semana 18"
+    "titulo": "Reto de Aeróbicos",
+    "descripcion": "Completa una clase de aeróbicos durante 45 minutos al día.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 25.0, "maximo": 29.9}
   },
   {
-    "titulo": "Reto de Respeto por el Medio Ambiente",
-    "descripcion": "Haz algo positivo por el medio ambiente cada día.",
-    "disponibilidad": "Disponible desde: Día 8, Semana 18 hasta: Día 14, Semana 19"
+    "titulo": "Reto de Ciclismo Diario",
+    "descripcion": "Sal a andar en bicicleta durante 30 minutos cada día.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 25.0, "maximo": 29.9}
   },
   {
-    "titulo": "Reto de Ayuno Intermitente",
-    "descripcion": "Prueba el ayuno intermitente durante una semana.",
-    "disponibilidad": "Disponible desde: Día 15, Semana 19 hasta: Día 21, Semana 20"
+    "titulo": "Reto de No Azúcar",
+    "descripcion": "Evita consumir azúcar procesada durante una semana.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 30.0, "maximo": null}
+  },
+  {
+    "titulo": "Reto de Control de Porciones",
+    "descripcion": "Reduce las porciones de tus comidas a un 75% durante una semana.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 30.0, "maximo": null}
+  },
+  {
+    "titulo": "Reto de Comida Casera",
+    "descripcion": "Prepara todas tus comidas en casa durante una semana.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 30.0, "maximo": null}
+  },
+  {
+    "titulo": "Reto de Desayuno Saludable",
+    "descripcion": "Consume un desayuno saludable rico en proteínas todos los días.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 30.0, "maximo": null}
+  },
+  {
+    "titulo": "Reto de Desayuno Bajo en Calorías",
+    "descripcion": "Mantén tu desayuno bajo en calorías, no más de 300 calorías cada día.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 30.0, "maximo": null}
+  },
+  {
+    "titulo": "Reto de Cocción Saludable",
+    "descripcion": "Cocina utilizando técnicas saludables (al vapor, a la parrilla, al horno) durante una semana.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 30.0, "maximo": null}
+  },
+  {
+    "titulo": "Reto de Planificación de Comidas",
+    "descripcion": "Planifica tus comidas saludables para la semana con anticipación.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 30.0, "maximo": null}
+  },
+  {
+    "titulo": "Reto de Gratitud Diaria",
+    "descripcion": "Escribe una cosa por la que estás agradecido cada día durante una semana.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 30.0, "maximo": null}
+  },
+  {
+    "titulo": "Reto de Apoyo Social",
+    "descripcion": "Busca apoyo en amigos o familiares para mantener tu motivación.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 30.0, "maximo": null}
+  },
+  {
+    "titulo": "Reto de Autoevaluación",
+    "descripcion": "Evalúa tu progreso semanalmente y ajusta tus metas.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 30.0, "maximo": null}
+  },
+  {
+    "titulo": "Reto de Actividades Recreativas",
+    "descripcion": "Dedica tiempo a actividades recreativas que disfrutes.",
+    "disponibilidad": {"fecha_inicio": "No Activo", "fecha_fin": "No Activo"},
+    "imc_recomendado": {"minimo": 30.0, "maximo": null}
   }
-
-
 ]

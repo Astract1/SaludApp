@@ -5,7 +5,7 @@
     android:padding="16dp"
     android:layout_marginBottom="8dp"
     android:orientation="vertical"
-    android:background="@drawable/item_reto_background"> <!-- Cambiado a drawable -->
+    android:background="@drawable/item_reto_background">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -46,16 +46,30 @@
                 android:ellipsize="end"
                 android:textColor="@android:color/darker_gray" />
 
-            <!-- Nueva TextView para la disponibilidad -->
             <TextView
-                android:id="@+id/fechaDisponibilidad"
+                android:id="@+id/fechaInicio"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Disponible desde: Día 1, Semana 1 hasta: Día 7, Semana 2"
+                android:text="Inicio: No Activo"
                 android:textSize="12sp"
                 android:textColor="@android:color/darker_gray"
                 android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/fechaFin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fin: No Activo"
+                android:textSize="12sp"
+                android:textColor="@android:color/darker_gray"
+                android:layout_marginTop="2dp" />
         </LinearLayout>
+
+        <View
+            android:id="@+id/ColorBarra"
+            android:layout_width="16dp"
+            android:layout_height="match_parent"
+            android:background="@color/black" />
     </LinearLayout>
 
     <Button
@@ -66,4 +80,14 @@
         android:text="Unirse"
         android:backgroundTint="@color/cyan_book"
         android:textColor="@android:color/white" />
+
+    <!-- TextView para el mensaje de IMC -->
+    <TextView
+        android:id="@+id/mensajeIMC"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No tienes un valor de IMC asignado."
+        android:textColor="@android:color/holo_red_dark"
+        android:visibility="gone"
+    android:layout_marginTop="8dp" />
 </LinearLayout>

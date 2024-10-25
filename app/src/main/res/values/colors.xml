@@ -15,5 +15,9 @@
     <color name = "slip_color">#E7E7E7</color>
     <color name = "cyan_book">#26C0CC</color>
     <color name="dark_background">#333333</color>
+    <color name = "red">#FF0000</color>
+    <color name = "green">#00FF00</color>
+    <color name = "yellow">#FFFF00</color>
+    <color name = "blue">#0000FF</color>
 
 </resources>
