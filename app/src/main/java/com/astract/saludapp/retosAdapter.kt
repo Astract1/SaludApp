@@ -9,6 +9,7 @@ import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -18,6 +19,7 @@ import androidx.core.app.NotificationCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.astract.saludapp.NotificationReceiver
 import com.astract.saludapp.R
+import com.astract.saludapp.database.MyDatabaseHelper
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -48,6 +50,19 @@ class retosAdapter(
     private val ultimoIMC: Double
 ) : RecyclerView.Adapter<retosAdapter.RetoViewHolder>() {
 
+    init {
+        val dbHelper = MyDatabaseHelper(context)
+        val retosInscritos = dbHelper.obtenerRetosInscritos()
+        retos.forEach { reto ->
+            if (retosInscritos.contains(reto.titulo)) {
+                reto.estaUnido = true
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    configurarNotificacion(reto)
+                }
+            }
+        }
+    }
+
     companion object {
         private const val CHANNEL_ID = "canal_retos"
         private const val CHANNEL_NAME = "Retos de Salud"
@@ -73,11 +88,36 @@ class retosAdapter(
         return RetoViewHolder(view)
     }
 
+    private fun animateView(view: View) {
+        view.alpha = 0f
+        view.translationY = 100f
+        view.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(300)
+            .start()
+    }
+
+    private fun animateButton(button: Button) {
+        val animation = AnimationUtils.loadAnimation(context, R.anim.button_animation)
+        button.startAnimation(animation)
+    }
+
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onBindViewHolder(holder: RetoViewHolder, position: Int) {
         val reto = retos[position]
         setupViewHolder(holder, reto)
         actualizarEstadoBoton(holder, reto)
+
+        // Animar la aparición del item
+        holder.itemView.alpha = 0f
+        holder.itemView.translationY = 100f
+        holder.itemView.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(300)
+            .setStartDelay(position * 100L)
+            .start()
     }
 
     private fun setupViewHolder(holder: RetoViewHolder, reto: Reto) {
@@ -116,28 +156,44 @@ class retosAdapter(
     private fun manejarClickUnirse(holder: RetoViewHolder, reto: Reto) {
         mostrarDialogoFrecuenciaNotificacion(reto) { frecuenciaSeleccionada ->
             if (frecuenciaSeleccionada != null) {
-                holder.unirseButton.setBackgroundColor(context.getColor(R.color.cyan_book))
+                // Animar el botón
+                animateButton(holder.unirseButton)
 
-                val calendar = Calendar.getInstance()
-                val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                holder.unirseButton.postDelayed({
+                    holder.unirseButton.setBackgroundColor(context.getColor(R.color.cyan_book))
 
-                val fechaInicio = sdf.format(calendar.time)
-                calendar.add(Calendar.DAY_OF_YEAR, 7)
-                val fechaFin = sdf.format(calendar.time)
+                    val calendar = Calendar.getInstance()
+                    val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                    val fechaInicio = sdf.format(calendar.time)
+                    calendar.add(Calendar.DAY_OF_YEAR, 7)
+                    val fechaFin = sdf.format(calendar.time)
 
-                actualizarFechas(holder, fechaInicio, fechaFin)
+                    actualizarFechas(holder, fechaInicio, fechaFin)
 
-                reto.estaUnido = true
-                reto.frecuenciaNotificacion = frecuenciaSeleccionada
-                configurarNotificacion(reto)
+                    val dbHelper = MyDatabaseHelper(context)
+                    dbHelper.inscribirseAReto(reto.titulo, frecuenciaSeleccionada)
 
-                holder.unirseButton.apply {
-                    text = "Inscrito"
-                    isEnabled = false
-                }
+                    reto.estaUnido = true
+                    reto.frecuenciaNotificacion = frecuenciaSeleccionada
+                    configurarNotificacion(reto)
 
-                Toast.makeText(context, "Te has unido al reto: ${reto.titulo}", Toast.LENGTH_SHORT).show()
-                onUnirseClick(reto)
+                    // Animar el cambio de texto del botón
+                    holder.unirseButton.animate()
+                        .alpha(0f)
+                        .setDuration(150)
+                        .withEndAction {
+                            holder.unirseButton.text = "Inscrito"
+                            holder.unirseButton.isEnabled = false
+                            holder.unirseButton.animate()
+                                .alpha(1f)
+                                .setDuration(150)
+                                .start()
+                        }
+                        .start()
+
+                    Toast.makeText(context, "Te has unido al reto: ${reto.titulo}", Toast.LENGTH_SHORT).show()
+                    onUnirseClick(reto)
+                }, 300)
             }
         }
     }
@@ -149,9 +205,9 @@ class retosAdapter(
 
     @RequiresApi(Build.VERSION_CODES.S)
     private fun mostrarDialogoFrecuenciaNotificacion(reto: Reto, callback: (Int?) -> Unit) {
-        val opciones = arrayOf("Diariamente", "Cada 2 días", "Prueba (cada minuto)")
+        val opciones = arrayOf("Diariamente", "Cada 2 días", "Prueba (cada 15 segundos)")
 
-        AlertDialog.Builder(context)
+        val dialog = AlertDialog.Builder(context, R.style.AnimatedDialog)
             .setTitle("Selecciona la frecuencia de las notificaciones")
             .setItems(opciones) { dialog, which ->
                 callback(which)
@@ -163,7 +219,10 @@ class retosAdapter(
             .setOnCancelListener {
                 callback(null)
             }
-            .show()
+            .create()
+
+        dialog.window?.attributes?.windowAnimations = R.style.DialogAnimation
+        dialog.show()
     }
 
     @RequiresApi(Build.VERSION_CODES.S)

@@ -82,6 +82,197 @@
 
 
 
+    <androidx.cardview.widget.CardView
+        android:id="@+id/retos_card"
+        android:layout_width="224dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/username_text">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Retos Guardados"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="8dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/trofeo_icon"
+                    android:layout_gravity="center_vertical"/>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginStart="8dp">
+
+                    <TextView
+                        android:id="@+id/reto_actual_titulo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Reto Actual"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/black"
+                        android:maxLines="1"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/reto_actual_descripcion"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Descripción breve del reto"
+                        android:textSize="12sp"
+                        android:textColor="@android:color/darker_gray"
+                        android:maxLines="1"
+                        android:ellipsize="end"/>
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/ver_mas_retos"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:rotation="180"
+                    android:src="@drawable/baseline_keyboard_arrow_up_24"
+                    android:layout_gravity="center_vertical"
+                    android:clickable="true"
+                    android:focusable="true"/>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@android:color/darker_gray"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/total_retos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Total de retos: 5"
+                android:textSize="12sp"
+                android:textColor="@android:color/darker_gray"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/retos_recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/imc_card"
+        android:layout_width="116dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        app:layout_constraintStart_toEndOf="@id/retos_card"
+        app:layout_constraintTop_toBottomOf="@id/username_text">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="IMC"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textColor="@android:color/black"/>
+
+            <TextView
+                android:id="@+id/imc_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="24.5"
+                android:textSize="24sp"
+                android:textColor="@android:color/black"
+                android:layout_marginTop="4dp"/>
+
+            <TextView
+                android:id="@+id/imc_estado"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Normal"
+                android:textSize="14sp"
+                android:textColor="@android:color/darker_gray"/>
+
+            <View
+                android:id="@+id/imc_color_indicator"
+                android:layout_width="match_parent"
+                android:layout_height="4dp"
+                android:background="@color/green"
+                android:layout_marginTop="8dp"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/estadisticas_card"
+        android:layout_width="328dp"
+        android:layout_height="128dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        app:layout_constraintTop_toBottomOf="@id/retos_card"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Estadísticas de Retos"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textColor="@android:color/black"/>
+
+            <com.github.mikephil.charting.charts.PieChart
+                android:id="@+id/pieChart"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"/>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+
+
+
+
 
 
 

@@ -12,6 +12,9 @@ import com.astract.saludapp.HistorialIMCData
 import com.astract.saludapp.Noticia
 import com.astract.saludapp.Source
 import com.astract.saludapp.models.NoticiaEntity
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
@@ -57,6 +60,14 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
         const val COLUMN_PESO = "peso"
         const val COLUMN_ALTURA = "altura"
 
+        // Tabla de Inscripciones a Retos
+        const val TABLE_NAME_INSCRIPCIONES = "inscripciones_retos"
+        const val COLUMN_ID_INSCRIPCION = "id"
+        const val COLUMN_TITULO_RETO = "titulo_reto"
+        const val COLUMN_FECHA_INSCRIPCION = "fecha_inscripcion"
+        const val COLUMN_FRECUENCIA_NOTIFICACION = "frecuencia_notificacion"
+        const val COLUMN_COMPLETADO = "completado"
+
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -92,9 +103,20 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
                 "$COLUMN_PESO REAL," +
                 "$COLUMN_ALTURA REAL)")
 
+        val createTableInscripciones = """
+        CREATE TABLE $TABLE_NAME_INSCRIPCIONES (
+            $COLUMN_ID_INSCRIPCION INTEGER PRIMARY KEY AUTOINCREMENT,
+            $COLUMN_TITULO_RETO TEXT,
+            $COLUMN_FECHA_INSCRIPCION TEXT,
+            $COLUMN_FRECUENCIA_NOTIFICACION INTEGER,
+            $COLUMN_COMPLETADO INTEGER DEFAULT 0
+        )
+    """.trimIndent()
+
         db.execSQL(createTable)
         db.execSQL(createTableArticulos)
         db.execSQL(createTableIMC)
+        db.execSQL(createTableInscripciones)
     }
 
 
@@ -102,12 +124,12 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
         db.execSQL("DROP TABLE IF EXISTS $TABLE_NAME")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_NAME_ARTICULOS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_NAME_IMC")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_NAME_INSCRIPCIONES")
         onCreate(db)
     }
 
 
 
-    // Método para obtener todas las noticias
     fun getAllNoticias(): List<Noticia> {
         val listaDeNoticias = mutableListOf<Noticia>()
         val db: SQLiteDatabase = this.readableDatabase
@@ -117,7 +139,7 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
             do {
                 // Aquí asumimos que la columna de origen está en formato JSON o similar
                 val sourceJson = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SOURCE))
-                val source = Source(name = sourceJson) // Ajusta esto según cómo quieras estructurarlo
+                val source = Source(name = sourceJson)
 
                 val noticia = Noticia(
                     id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
@@ -471,5 +493,114 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
         db.close()
         return imc
     }
+
+    fun inscribirseAReto(tituloReto: String, frecuenciaNotificacion: Int) {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COLUMN_TITULO_RETO, tituloReto)
+            put(COLUMN_FECHA_INSCRIPCION, SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date()))
+            put(COLUMN_FRECUENCIA_NOTIFICACION, frecuenciaNotificacion)
+            put(COLUMN_COMPLETADO, 0) // Añadir el estado inicial como no completado
+        }
+
+        db.insert(TABLE_NAME_INSCRIPCIONES, null, values)
+        db.close()
+    }
+
+    fun obtenerRetosInscritos(): List<String> {
+        val retosInscritos = mutableListOf<String>()
+        val db = readableDatabase
+
+        val cursor = db.query(
+            TABLE_NAME_INSCRIPCIONES,
+            arrayOf(COLUMN_TITULO_RETO),
+            null,
+            null,
+            null,
+            null,
+            "$COLUMN_FECHA_INSCRIPCION DESC"
+        )
+
+        cursor.use {
+            while (it.moveToNext()) {
+                retosInscritos.add(it.getString(it.getColumnIndexOrThrow(COLUMN_TITULO_RETO)))
+            }
+        }
+
+        return retosInscritos
+    }
+
+
+    fun estaInscritoEnReto(tituloReto: String): Boolean {
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_NAME_INSCRIPCIONES,
+            null,
+            "$COLUMN_TITULO_RETO = ?",
+            arrayOf(tituloReto),
+            null,
+            null,
+            null
+        )
+
+        val estaInscrito = cursor.count > 0
+        cursor.close()
+        db.close()
+        return estaInscrito
+    }
+    fun isRetoCompletado(tituloReto: String): Boolean {
+        val db = this.readableDatabase
+        var completado = false
+
+        val cursor = db.query(
+            TABLE_NAME_INSCRIPCIONES,
+            arrayOf(COLUMN_COMPLETADO),
+            "$COLUMN_TITULO_RETO = ?",
+            arrayOf(tituloReto),
+            null,
+            null,
+            null
+        )
+
+        cursor.use {
+            if (it.moveToFirst()) {
+                completado = it.getInt(it.getColumnIndexOrThrow(COLUMN_COMPLETADO)) == 1
+            }
+        }
+
+        return completado
+    }
+
+    fun actualizarEstadoReto(tituloReto: String, completado: Boolean) {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put(COLUMN_COMPLETADO, if (completado) 1 else 0)
+        }
+
+        db.update(
+            TABLE_NAME_INSCRIPCIONES,
+            values,
+            "$COLUMN_TITULO_RETO = ?",
+            arrayOf(tituloReto)
+        )
+    }
+
+    fun eliminarInscripcionReto(tituloReto: String): Boolean {
+        val db = this.writableDatabase
+        return try {
+            val rowsDeleted = db.delete(
+                TABLE_NAME_INSCRIPCIONES,
+                "$COLUMN_TITULO_RETO = ?",
+                arrayOf(tituloReto)
+            )
+            db.close()
+            rowsDeleted > 0
+        } catch (e: Exception) {
+            Log.e("MyDatabaseHelper", "Error al eliminar la inscripción: ${e.message}")
+            false
+        }
+    }
+
+
 
 }

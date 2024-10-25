@@ -19,5 +19,7 @@
     <color name = "green">#00FF00</color>
     <color name = "yellow">#FFFF00</color>
     <color name = "blue">#0000FF</color>
+    <color name="completado_background">#22DD22</color>
+    <color name="pendiente_background">#C7F6C7</color>
 
 </resources>

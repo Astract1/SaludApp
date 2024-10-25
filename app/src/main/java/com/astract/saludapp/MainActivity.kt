@@ -4,10 +4,10 @@ import android.app.AlarmManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.media.audiofx.BassBoost
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -23,6 +23,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         solicitarPermisos()
         setupNavegacion()
+
+        // Configura el clic en el ImageView de perfil para abrir ActivityPerfil
+        val profileIcon = findViewById<ImageView>(R.id.profile_icon)
+        profileIcon.setOnClickListener {
+            val intent = Intent(this, perfil::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun setupNavegacion() {
@@ -72,7 +79,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     private fun solicitarPermisos() {
         // Para Android 13 (API 33) y superiores - Notificaciones
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -95,14 +101,11 @@ class MainActivity : AppCompatActivity() {
             if (!alarmManager.canScheduleExactAlarms()) {
                 val intent = Intent().apply {
                     action = "android.settings.REQUEST_SCHEDULE_EXACT_ALARM"
-                    // O alternativamente:
-                    // action = Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
                 }
                 startActivity(intent)
             }
         }
     }
-
 
     private fun navigateToFragment(navController: NavController, currentDestinationId: Int?, targetFragmentId: Int) {
         if (currentDestinationId == targetFragmentId) {
