@@ -16,12 +16,12 @@ import java.io.InputStreamReader
 
 class info_sellos_negros : AppCompatActivity() {
 
-    private lateinit var selloImage: ImageView
-    private lateinit var titleTextView: TextView
-    private lateinit var resumenTextView: TextView
-    private lateinit var caracteristicasTextView: TextView
-    private lateinit var detallesTextView: TextView
-    private lateinit var recomendacionesTextView: TextView
+    private lateinit var ivSello: ImageView
+    private lateinit var tvTitulo: TextView
+    private lateinit var tvResumen: TextView
+    private lateinit var tvCaracteristicas: TextView
+    private lateinit var tvDetalles: TextView
+    private lateinit var tvRecomendaciones: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,12 +29,12 @@ class info_sellos_negros : AppCompatActivity() {
         setContentView(R.layout.activity_info_sellos_negros)
 
         // Inicializa las vistas
-        selloImage = findViewById(R.id.selloImage)
-        titleTextView = findViewById(R.id.titleTextView)
-        resumenTextView = findViewById(R.id.resumenTextView)
-        caracteristicasTextView = findViewById(R.id.caracteristicasTextView)
-        detallesTextView = findViewById(R.id.detallesTextView)
-        recomendacionesTextView = findViewById(R.id.recomendacionesTextView)
+        ivSello = findViewById(R.id.iv_sello)
+        tvTitulo = findViewById(R.id.tv_titulo)
+        tvResumen = findViewById(R.id.tv_resumen)
+        tvCaracteristicas = findViewById(R.id.tv_caracteristicas)
+        tvDetalles = findViewById(R.id.tv_detalles)
+        tvRecomendaciones = findViewById(R.id.tv_recomendaciones)
 
         // Obtiene el ID del sello desde el Intent
         val selloId = intent.getStringExtra("sello_id") ?: return
@@ -43,7 +43,7 @@ class info_sellos_negros : AppCompatActivity() {
         loadSelloDetails(selloId)
 
         // Listener para el botón de regreso
-        findViewById<ImageButton>(R.id.btnVolver_Sellos).setOnClickListener {
+        findViewById<ImageButton>(R.id.btn_volver).setOnClickListener {
             finish()
         }
 
@@ -78,15 +78,15 @@ class info_sellos_negros : AppCompatActivity() {
         }
 
         // Establece los datos en las vistas
-        titleTextView.text = sello.nombre
-        resumenTextView.text = sello.resumen
-        caracteristicasTextView.text = "Características:\n${sello.caracteristicas.joinToString("\n")}"
-        detallesTextView.text = "Detalles:\n${sello.detalles}"
-        recomendacionesTextView.text = "Recomendaciones:\n${sello.recomendaciones}"
+        tvTitulo.text = sello.nombre
+        tvResumen.text = sello.resumen
+        tvCaracteristicas.text = "Características:\n${sello.caracteristicas.joinToString("\n")}"
+        tvDetalles.text = "Detalles:\n${sello.detalles}"
+        tvRecomendaciones.text = "Recomendaciones:\n${sello.recomendaciones}"
 
         // Carga la imagen usando Glide
         Glide.with(this)
             .load(sello.imagen_url)
-            .into(selloImage)
+            .into(ivSello)
     }
 }

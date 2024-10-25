@@ -15,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.astract.saludapp.database.MyDatabaseHelper
 import com.astract.saludapp.viewmodel.ArticuloViewModel
 import com.astract.saludapp.viewmodel.ArticulosViewModelFactory
+import com.google.android.material.appbar.MaterialToolbar
 
 class Articulos : AppCompatActivity() {
 
@@ -25,7 +26,7 @@ class Articulos : AppCompatActivity() {
     private lateinit var searchView: SearchView
     private lateinit var noResultsTextView: TextView
     private lateinit var progressBar: ProgressBar
-    private lateinit var btnVolver: ImageButton
+    private lateinit var toolbar: MaterialToolbar // Cambia el nombre de btnVolver a toolbar
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,10 +34,10 @@ class Articulos : AppCompatActivity() {
         setContentView(R.layout.activity_articulos) // Asegúrate de que este es tu layout
 
 
-        btnVolver = findViewById(R.id.btnVolverArticulos)
+        toolbar = findViewById(R.id.toolbar)
 
-        btnVolver.setOnClickListener() {
-            finish()
+        toolbar.setNavigationOnClickListener {
+            finish() // Cierra la actividad cuando se presiona el icono de navegación
         }
 
         dbHelper = MyDatabaseHelper(this)

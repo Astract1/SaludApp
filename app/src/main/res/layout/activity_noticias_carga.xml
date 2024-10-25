@@ -10,7 +10,6 @@
     android:elevation="4dp"
     tools:context=".Noticias_Carga">
 
-    <!-- Rectángulo con botón de volver -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/rectangulo"
         android:layout_width="0dp"
@@ -76,6 +75,7 @@
             android:id="@+id/tituloNoticia"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:gravity="center"
             android:text="Título de la Noticia"
             android:textColor="@color/black"
@@ -88,6 +88,8 @@
         <ScrollView
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             app:layout_constraintBottom_toTopOf="@id/btnguardar"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -104,11 +106,12 @@
                 android:textSize="16sp" />
         </ScrollView>
 
-        <androidx.appcompat.widget.AppCompatButton
+        <Button
             android:id="@+id/btnguardar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp"
             android:backgroundTint="@color/cyan_book"
             android:padding="12dp"
             android:text="Guardar"
@@ -117,11 +120,10 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <androidx.appcompat.widget.AppCompatButton
+        <Button
             android:id="@+id/btnVerNoticia"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
             android:backgroundTint="@color/cyan_book"
             android:padding="12dp"
             android:text="Ver Noticia"

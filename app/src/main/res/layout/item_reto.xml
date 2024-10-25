@@ -1,93 +1,111 @@
-<LinearLayout
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp"
-    android:layout_marginBottom="8dp"
-    android:orientation="vertical"
-    android:background="@drawable/item_reto_background">
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:padding="16dp"
+        android:background="@drawable/item_reto_background">
 
         <ImageView
             android:id="@+id/trofeoIcon"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:layout_gravity="center_vertical"
             android:src="@drawable/trofeo_icon"
-            android:contentDescription="Trofeo Icon" />
+            android:contentDescription="Trofeo Icon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/tituloReto"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_marginStart="16dp"
-            android:orientation="vertical">
+            android:layout_marginEnd="16dp"
+            android:text="Reto de Hidratación Diaria"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"
+            app:layout_constraintStart_toEndOf="@id/trofeoIcon"
+            app:layout_constraintEnd_toStartOf="@id/ColorBarra"
+            app:layout_constraintTop_toTopOf="@id/trofeoIcon" />
 
-            <TextView
-                android:id="@+id/tituloReto"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Reto de Hidratación Diaria"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@android:color/black" />
+        <TextView
+            android:id="@+id/descripcionReto"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Bebe al menos 2 litros de agua al día para mejorar tu salud y bienestar."
+            android:textSize="14sp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textColor="@android:color/darker_gray"
+            app:layout_constraintStart_toStartOf="@id/tituloReto"
+            app:layout_constraintEnd_toEndOf="@id/tituloReto"
+            app:layout_constraintTop_toBottomOf="@id/tituloReto" />
 
-            <TextView
-                android:id="@+id/descripcionReto"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Bebe al menos 2 litros de agua al día para mejorar tu salud y bienestar."
-                android:textSize="14sp"
-                android:maxLines="2"
-                android:ellipsize="end"
-                android:textColor="@android:color/darker_gray" />
+        <TextView
+            android:id="@+id/fechaInicio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Inicio: No Activo"
+            android:textSize="12sp"
+            android:textColor="@android:color/darker_gray"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="@id/descripcionReto"
+            app:layout_constraintTop_toBottomOf="@id/descripcionReto" />
 
-            <TextView
-                android:id="@+id/fechaInicio"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Inicio: No Activo"
-                android:textSize="12sp"
-                android:textColor="@android:color/darker_gray"
-                android:layout_marginTop="4dp" />
-
-            <TextView
-                android:id="@+id/fechaFin"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Fin: No Activo"
-                android:textSize="12sp"
-                android:textColor="@android:color/darker_gray"
-                android:layout_marginTop="2dp" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/fechaFin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Fin: No Activo"
+            android:textSize="12sp"
+            android:textColor="@android:color/darker_gray"
+            android:layout_marginTop="2dp"
+            app:layout_constraintStart_toStartOf="@id/fechaInicio"
+            app:layout_constraintTop_toBottomOf="@id/fechaInicio" />
 
         <View
             android:id="@+id/ColorBarra"
             android:layout_width="16dp"
-            android:layout_height="match_parent"
-            android:background="@color/black" />
-    </LinearLayout>
+            android:layout_height="0dp"
+            android:background="@color/black"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-    <Button
-        android:id="@+id/unirseButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Unirse"
-        android:backgroundTint="@color/cyan_book"
-        android:textColor="@android:color/white" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/unirseButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Unirse"
+            android:textAllCaps="false"
+            app:cornerRadius="8dp"
+            android:backgroundTint="@color/cyan_book"
+            android:textColor="@android:color/white"
+            app:layout_constraintTop_toBottomOf="@id/fechaFin"
+            app:layout_constraintStart_toStartOf="@id/fechaFin" />
 
-    <!-- TextView para el mensaje de IMC -->
-    <TextView
-        android:id="@+id/mensajeIMC"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="No tienes un valor de IMC asignado."
-        android:textColor="@android:color/holo_red_dark"
-        android:visibility="gone"
-    android:layout_marginTop="8dp" />
-</LinearLayout>
+        <TextView
+            android:id="@+id/mensajeIMC"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No tienes un valor de IMC asignado."
+            android:textColor="@android:color/holo_red_dark"
+            android:visibility="gone"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/unirseButton"
+            app:layout_constraintStart_toStartOf="@id/unirseButton" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>
