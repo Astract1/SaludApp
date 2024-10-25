@@ -1,5 +1,8 @@
 package com.astract.saludapp
 
+import Disponibilidad
+import IMCRecomendado
+import Reto
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -13,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.astract.saludapp.database.MyDatabaseHelper
 import org.json.JSONArray
 import org.json.JSONObject
+import retosAdapter
 import java.io.IOException
 import java.io.InputStream
 
@@ -59,11 +63,11 @@ class desafios : Fragment() {
             // Verifica si la lista de retos está vacía
             if (retosList.isEmpty()) {
                 noRetosMessage.text = "No hay retos disponibles."
-                noRetosMessage.visibility = View.VISIBLE  // Mostrar mensaje
-                recyclerView.visibility = View.GONE       // Ocultar RecyclerView
+                noRetosMessage.visibility = View.VISIBLE
+                recyclerView.visibility = View.GONE
             } else {
-                noRetosMessage.visibility = View.GONE      // Ocultar mensaje
-                recyclerView.visibility = View.VISIBLE      // Mostrar RecyclerView
+                noRetosMessage.visibility = View.GONE
+                recyclerView.visibility = View.VISIBLE
             }
         }
 

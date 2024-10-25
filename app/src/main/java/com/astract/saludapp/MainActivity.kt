@@ -1,8 +1,16 @@
 package com.astract.saludapp
 
+import android.app.AlarmManager
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.media.audiofx.BassBoost
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
@@ -13,7 +21,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        solicitarPermisos()
         setupNavegacion()
     }
 
@@ -63,6 +71,38 @@ class MainActivity : AppCompatActivity() {
             Log.e("MainActivity", "Error configurando la navegación", e)
         }
     }
+
+
+    private fun solicitarPermisos() {
+        // Para Android 13 (API 33) y superiores - Notificaciones
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                    123
+                )
+            }
+        }
+
+        // Para Android 12 (API 31) y superiores - Alarmas exactas
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            if (!alarmManager.canScheduleExactAlarms()) {
+                val intent = Intent().apply {
+                    action = "android.settings.REQUEST_SCHEDULE_EXACT_ALARM"
+                    // O alternativamente:
+                    // action = Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
+                }
+                startActivity(intent)
+            }
+        }
+    }
+
 
     private fun navigateToFragment(navController: NavController, currentDestinationId: Int?, targetFragmentId: Int) {
         if (currentDestinationId == targetFragmentId) {
