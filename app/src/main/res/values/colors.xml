@@ -21,5 +21,6 @@
     <color name = "blue">#0000FF</color>
     <color name="completado_background">#22DD22</color>
     <color name="pendiente_background">#C7F6C7</color>
+    <color name="guarado_cyan">#197272</color>
 
 </resources>

@@ -69,6 +69,7 @@
                 android:id="@+id/cardIconN"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
+                android:src="@drawable/icon_book"
                 android:contentDescription="@string/icon_desc"/>
 
             <TextView

@@ -1,17 +1,16 @@
 package com.astract.saludapp
 
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.astract.saludapp.database.MyDatabaseHelper
 import com.bumptech.glide.Glide
 import java.text.SimpleDateFormat
@@ -26,20 +25,38 @@ class Noticias_Carga : AppCompatActivity() {
     private lateinit var btnGuardar: Button
     private lateinit var btnVerNoticia: Button
     private lateinit var btnVolver: ImageView
+    private val dbHelper = MyDatabaseHelper(this)
 
-    private var noticiaUrl: String? = null // Para almacenar la URL de la noticia
+    private var noticiaUrl: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_noticias_carga)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+
+        window.statusBarColor = Color.TRANSPARENT
+        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+
+        // Inicializar vistas
+        initializeViews()
+
+
+
+
+        // Cargar datos
+        val noticiaId = intent.getIntExtra("NOTICIA_ID", -1)
+        if (noticiaId != -1) {
+            loadNoticiaDetails(noticiaId)
+        } else {
+            showToast("ID de noticia no válido")
+            finish()
+            return
         }
 
+        setupClickListeners()
+    }
+
+    private fun initializeViews() {
         titleTextView = findViewById(R.id.tituloNoticia)
         dateTextView = findViewById(R.id.fechaNoticia)
         infoTextView = findViewById(R.id.informacionNoticia)
@@ -47,37 +64,43 @@ class Noticias_Carga : AppCompatActivity() {
         btnGuardar = findViewById(R.id.btnguardar)
         btnVerNoticia = findViewById(R.id.btnVerNoticia)
         btnVolver = findViewById(R.id.btnVolver)
+    }
 
-        val noticiaId = intent.getIntExtra("NOTICIA_ID", -1)
-        if (noticiaId == -1) {
-            showToast("ID de noticia no válido")
-            finish()
-            return
-        }
-        loadNoticiaDetails(noticiaId)
-
-        // Funcionalidad para el botón de Volver
+    private fun setupClickListeners() {
         btnVolver.setOnClickListener {
-            finish() // Cierra la actividad
-            overridePendingTransition(
-                R.anim.slide_in_right,
-                R.anim.slide_out_left
-            ) // Aplica las animaciones
+            finish()
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
-        // Funcionalidad para el botón Guardar
+
         btnGuardar.setOnClickListener {
-            showToast("Noticia guardada")
+            val noticiaId = intent.getIntExtra("NOTICIA_ID", -1)
+            Log.d(noticiaId.toString(), "NOTICIA ID")
+
+            if (noticiaId != -1) {
+                if (dbHelper.isNoticiaSaved(noticiaId)) {
+                    // Si ya está guardada, quitarla
+                    dbHelper.unSaveNoticia(noticiaId)
+                    btnGuardar.text = "Guardar"
+                    btnGuardar.setBackgroundColor(getColor(R.color.cyan_book)) // Para establecer el color directamente
+
+                    showToast("Noticia eliminada")
+                } else {
+                    // Si no está guardada, guardarla
+                    dbHelper.saveNoticia(noticiaId)
+                    btnGuardar.text = "Guardada"
+                    btnGuardar.setBackgroundColor(getColor(R.color.guarado_cyan)) // Para establecer el color directamente
+
+                    showToast("Noticia guardada")
+                }
+            }
         }
 
-        // Funcionalidad para el botón Ver Noticia
+
         btnVerNoticia.setOnClickListener {
-            if (noticiaUrl.isNullOrEmpty()) {
-                showToast("URL no disponible")
-            } else {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(noticiaUrl))
-                startActivity(intent)
-            }
+            noticiaUrl?.let { url ->
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+            } ?: showToast("URL no disponible")
         }
     }
 
@@ -85,25 +108,29 @@ class Noticias_Carga : AppCompatActivity() {
         val dbHelper = MyDatabaseHelper(this)
         val noticia = dbHelper.getNoticiaById(id)
 
-        if (noticia != null) {
-            titleTextView.text = noticia.title
-
-            // Log para depuración de la fecha
-            Log.d("Noticias_Carga", "Fecha recibida: ${noticia.publishedAt}")
-
-            // Aplicar formato a la fecha
-            val formattedDate = formatDate(noticia.publishedAt)
+        noticia?.let {
+            titleTextView.text = it.title
+            val formattedDate = formatDate(it.publishedAt)
             dateTextView.text = "Fecha: $formattedDate"
+            infoTextView.text = it.content
+            noticiaUrl = it.url
 
-            infoTextView.text = noticia.content
-            noticiaUrl = noticia.url // Asignar la URL
-
-            // Cargar la imagen usando Glide
             Glide.with(this)
-                .load(noticia.urlToImage)
+                .load(it.urlToImage)
                 .placeholder(R.drawable.no_image)
+                .error(R.drawable.no_image)
                 .into(imageView)
-        } else {
+
+
+            if (dbHelper.isNoticiaSaved(id)) {
+                btnGuardar.text = "Guardada"
+                btnGuardar.setBackgroundColor(getColor(R.color.guarado_cyan))
+            } else {
+                btnGuardar.text = "Guardar"
+                btnGuardar.setBackgroundColor(getColor(R.color.cyan_book))
+
+            }
+        } ?: run {
             titleTextView.text = "Noticia no encontrada"
             dateTextView.text = ""
             infoTextView.text = ""
@@ -112,16 +139,15 @@ class Noticias_Carga : AppCompatActivity() {
     }
 
     private fun formatDate(fecha: String): String {
-        val inputFormat =
-            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()) // Formato ISO 8601
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
         val outputFormat = SimpleDateFormat("dd/MM/yyyy hh:mm a", Locale.getDefault())
 
         return try {
             val date = inputFormat.parse(fecha)
-            outputFormat.format(date ?: fecha)
+            outputFormat.format(date ?: return fecha)
         } catch (e: Exception) {
             Log.e("Noticias_Carga", "Error al formatear la fecha: ${e.message}")
-            fecha // En caso de error, retornar la fecha sin formato
+            fecha
         }
     }
 
@@ -129,5 +155,8 @@ class Noticias_Carga : AppCompatActivity() {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
-
+    override fun onBackPressed() {
+        super.onBackPressed()
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+    }
 }

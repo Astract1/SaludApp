@@ -49,6 +49,7 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
         const val COLUMN_PUBLISHED_AT_ARTICULO = "publishedAt"
         const val COLUMN_URL_ARTICULO = "url"
         const val COLUMN_IMAGE_URL_ARTICULO = "imageUrl"
+        const val COLUMN_IS_SAVED = "is_saved"
 
 
         //Tabla de Historial de IMC
@@ -68,32 +69,47 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
         const val COLUMN_FRECUENCIA_NOTIFICACION = "frecuencia_notificacion"
         const val COLUMN_COMPLETADO = "completado"
 
+
+        //
+
+
+
+
+
     }
 
     override fun onCreate(db: SQLiteDatabase) {
         Log.d("MyDatabaseHelper", "Creating tables...")
 
-        val createTable = ("CREATE TABLE $TABLE_NAME (" +
-                "$COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "$COLUMN_SOURCE TEXT," +
-                "$COLUMN_AUTHOR TEXT," +
-                "$COLUMN_TITLE TEXT," +
-                "$COLUMN_DESCRIPTION TEXT," +
-                "$COLUMN_URL TEXT," +
-                "$COLUMN_URL_TO_IMAGE TEXT," +
-                "$COLUMN_PUBLISHED_AT TEXT," +
-                "$COLUMN_CONTENT TEXT," +
-                "$COLUMN_LANGUAGE TEXT," +
-                "$COLUMN_CATEGORY TEXT)")
+        val createTable = """
+    CREATE TABLE $TABLE_NAME (
+        $COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+        $COLUMN_SOURCE TEXT,
+        $COLUMN_AUTHOR TEXT,
+        $COLUMN_TITLE TEXT,
+        $COLUMN_DESCRIPTION TEXT,
+        $COLUMN_URL TEXT,
+        $COLUMN_URL_TO_IMAGE TEXT,
+        $COLUMN_PUBLISHED_AT TEXT,
+        $COLUMN_CONTENT TEXT,
+        $COLUMN_LANGUAGE TEXT,
+        $COLUMN_CATEGORY TEXT,
+        $COLUMN_IS_SAVED INTEGER DEFAULT 0
+    );
+""".trimIndent()
 
-        val createTableArticulos = ("CREATE TABLE $TABLE_NAME_ARTICULOS (" +
-                "$COLUMN_ID_ARTICULO INTEGER PRIMARY KEY AUTOINCREMENT," +
-                "$COLUMN_TITLE_ARTICULO TEXT," +
-                "$COLUMN_BODY_ARTICULO TEXT," +
-                "$COLUMN_AUTHOR_ARTICULO TEXT," +
-                "$COLUMN_PUBLISHED_AT_ARTICULO TEXT," +
-                "$COLUMN_URL_ARTICULO TEXT," +
-                "$COLUMN_IMAGE_URL_ARTICULO TEXT)")
+        val createTableArticulos = """
+    CREATE TABLE $TABLE_NAME_ARTICULOS (
+        $COLUMN_ID_ARTICULO INTEGER PRIMARY KEY AUTOINCREMENT,
+        $COLUMN_TITLE_ARTICULO TEXT,
+        $COLUMN_BODY_ARTICULO TEXT,
+        $COLUMN_AUTHOR_ARTICULO TEXT,
+        $COLUMN_PUBLISHED_AT_ARTICULO TEXT,
+        $COLUMN_URL_ARTICULO TEXT,
+        $COLUMN_IMAGE_URL_ARTICULO TEXT,
+        $COLUMN_IS_SAVED INTEGER DEFAULT 0
+    );
+""".trimIndent()
 
 
         val createTableIMC = ("CREATE TABLE $TABLE_NAME_IMC (" +
@@ -118,6 +134,7 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
         db.execSQL(createTableIMC)
         db.execSQL(createTableInscripciones)
     }
+
 
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -601,6 +618,149 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
         }
     }
 
+    fun saveArticulo(id: Int) {
+        val db = writableDatabase
+        val values = ContentValues()
+        values.put(COLUMN_IS_SAVED, 1) // Marca el artículo como guardado
 
+        db.update(TABLE_NAME_ARTICULOS, values, "$COLUMN_ID_ARTICULO = ?", arrayOf(id.toString()))
+        db.close()
+    }
+
+    fun saveNoticia(id: Int) {
+        val db = writableDatabase
+        val values = ContentValues()
+        values.put(COLUMN_IS_SAVED, 1) // Marca la noticia como guardada
+
+        db.update(TABLE_NAME, values, "$COLUMN_ID = ?", arrayOf(id.toString()))
+        db.close()
+    }
+
+    fun unSaveNoticia(id : Int){
+        val db = writableDatabase
+        val values = ContentValues()
+        values.put(COLUMN_IS_SAVED, 0) // Marca la noticia como guardada
+
+        db.update(TABLE_NAME, values, "$COLUMN_ID = ?", arrayOf(id.toString()))
+        db.close()
+    }
+
+    fun isNoticiaSaved (id: Int): Boolean {
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_NAME,
+            arrayOf(COLUMN_IS_SAVED),
+            "$COLUMN_ID = ?",
+            arrayOf(id.toString()),
+            null,
+            null,
+            null
+        )
+        val isSaved = if (cursor.moveToFirst()) {
+            cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_IS_SAVED)) == 1
+        } else {
+            false
+        }
+        cursor.close()
+        db.close()
+        return isSaved
+    }
+
+
+    fun getNoticiasGuardadas(): List<Noticia> {
+        val noticiasGuardadas = mutableListOf<Noticia>()
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_NAME,
+            null,
+            "$COLUMN_IS_SAVED = ?",
+            arrayOf("1"),  // Busca noticias que están marcadas como guardadas
+            null, null, null
+        )
+
+        if (cursor.moveToFirst()) {
+            do {
+                val sourceJson = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SOURCE))
+                val source = Source(name = sourceJson)
+
+                val noticia = Noticia(
+                    id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                    source = source,
+                    author = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_AUTHOR)),
+                    title = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TITLE)),
+                    description = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)),
+                    url = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_URL)),
+                    urlToImage = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_URL_TO_IMAGE)),
+                    publishedAt = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PUBLISHED_AT)),
+                    content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTENT))
+                )
+                noticiasGuardadas.add(noticia)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+        return noticiasGuardadas
+    }
+
+    fun getArticulosGuardados(): List<Articulo> {
+        val articulosGuardados = mutableListOf<Articulo>()
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_NAME_ARTICULOS,
+            null,
+            "$COLUMN_IS_SAVED = ?",
+            arrayOf("1"),  // Busca artículos que están marcados como guardados
+            null, null, null
+        )
+
+        if (cursor.moveToFirst()) {
+            do {
+                val articulo = Articulo(
+                    articleId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID_ARTICULO)),
+                    title = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TITLE_ARTICULO)),
+                    abstract = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_BODY_ARTICULO)),
+                    author = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_AUTHOR_ARTICULO)),
+                    publishedAt = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PUBLISHED_AT_ARTICULO)),
+                    url = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_URL_ARTICULO)),
+                    imagenurl = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_IMAGE_URL_ARTICULO))
+                )
+                articulosGuardados.add(articulo)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        db.close()
+        return articulosGuardados
+    }
+
+
+    fun unSaveArticulo(id: Int) {
+        val db = writableDatabase
+        val values = ContentValues()
+        values.put(COLUMN_IS_SAVED, 0) // Marca el artículo como no guardado
+
+        db.update(TABLE_NAME_ARTICULOS, values, "$COLUMN_ID_ARTICULO = ?", arrayOf(id.toString()))
+        db.close()
+    }
+
+    fun isAriculoSaved(id: Int): Boolean {
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_NAME_ARTICULOS,
+            arrayOf(COLUMN_IS_SAVED),
+            "$COLUMN_ID_ARTICULO = ?",
+            arrayOf(id.toString()),
+            null,
+            null,
+            null
+        )
+        val isSaved = if (cursor.moveToFirst()) {
+            cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_IS_SAVED)) == 1
+        } else {
+            false
+        }
+        cursor.close()
+        db.close()
+        return isSaved
+    }
 
 }

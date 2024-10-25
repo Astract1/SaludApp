@@ -2,6 +2,7 @@ package com.astract.saludapp
 
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -35,6 +36,13 @@ class perfil : AppCompatActivity() {
     private lateinit var pieChart: PieChart
     private var retosCompletados = 0
     private var retosTotales = 0
+    private lateinit var noticiasRecyclerView: RecyclerView
+    private lateinit var articulosRecyclerView: RecyclerView
+    private lateinit var noticiasAdapter: GuardarNoticiaAdapter
+    private lateinit var articulosAdapter: GuardarArticuloAdapter
+    private lateinit var noNoticiasText: TextView
+    private lateinit var noArticulosText: TextView
+
 
     data class RetoSimple(
         val titulo: String,
@@ -45,7 +53,8 @@ class perfil : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_perfil)
-
+        dbHelper = MyDatabaseHelper(this)
+        inicializarRecyclersGuardados()
         inicializarVistas()
         configurarVolver()
         cargarDatos()
@@ -299,6 +308,81 @@ class perfil : AppCompatActivity() {
         } else {
             Toast.makeText(this, "Error al eliminar el reto", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun inicializarRecyclersGuardados() {
+        // Inicializar RecyclerViews
+        noticiasRecyclerView = findViewById(R.id.noticias_recycler_view)
+        articulosRecyclerView = findViewById(R.id.articulos_recycler_view)
+        noNoticiasText = findViewById(R.id.no_noticias_text)
+        noArticulosText = findViewById(R.id.no_articulos_text)
+
+        // Configurar layouts
+        noticiasRecyclerView.layoutManager = LinearLayoutManager(this)
+        articulosRecyclerView.layoutManager = LinearLayoutManager(this)
+
+        // Inicializar adaptadores
+        noticiasAdapter = GuardarNoticiaAdapter(
+            noticias = emptyList(),
+            onItemClick = { noticia -> abrirDetalleNoticia(noticia) },
+            onDeleteClick = { noticia -> eliminarNoticia(noticia) }
+        )
+
+        articulosAdapter = GuardarArticuloAdapter(
+            articulos = emptyList(),
+            onItemClick = { articulo -> abrirDetalleArticulo(articulo) },
+            onDeleteClick = { articulo -> eliminarArticulo(articulo) }
+        )
+
+        // Asignar adaptadores
+        noticiasRecyclerView.adapter = noticiasAdapter
+        articulosRecyclerView.adapter = articulosAdapter
+
+        // Cargar datos iniciales
+        cargarNoticiasYArticulos()
+    }
+
+    private fun cargarNoticiasYArticulos() {
+        // Cargar noticias guardadas
+        val noticiasGuardadas = dbHelper.getNoticiasGuardadas()
+        noticiasAdapter.actualizarNoticias(noticiasGuardadas)
+        noNoticiasText.visibility = if (noticiasGuardadas.isEmpty()) View.VISIBLE else View.GONE
+
+        // Cargar artículos guardados
+        val articulosGuardados = dbHelper.getArticulosGuardados()
+        articulosAdapter.actualizarArticulos(articulosGuardados)
+        noArticulosText.visibility = if (articulosGuardados.isEmpty()) View.VISIBLE else View.GONE
+    }
+
+    private fun abrirDetalleNoticia(noticia: Noticia) {
+        val intent = Intent(this, Noticias_Carga::class.java).apply {
+           putExtra("NOTICIA_ID", noticia.id)
+        }
+        startActivity(intent)
+    }
+
+    private fun abrirDetalleArticulo(articulo: Articulo) {
+        val intent = Intent(this, ArticuloCarga::class.java).apply {
+            putExtra("ARTICULO_ID", articulo.articleId)
+        }
+        startActivity(intent)
+    }
+
+    private fun eliminarNoticia(noticia: Noticia) {
+        dbHelper.unSaveNoticia(noticia.id)
+        cargarNoticiasYArticulos()
+        Toast.makeText(this, "Noticia eliminada", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun eliminarArticulo(articulo: Articulo) {
+        dbHelper.unSaveArticulo(articulo.articleId)
+        cargarNoticiasYArticulos()
+        Toast.makeText(this, "Artículo eliminado", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        cargarNoticiasYArticulos()
     }
 
 }

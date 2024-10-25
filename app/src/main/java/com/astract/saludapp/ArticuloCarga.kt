@@ -1,15 +1,18 @@
 package com.astract.saludapp
 
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.astract.saludapp.database.MyDatabaseHelper
@@ -26,21 +29,24 @@ class ArticuloCarga : AppCompatActivity() {
     private lateinit var btnGuardar: Button
     private lateinit var btnVerArticulo: Button
     private lateinit var btnVolver: ImageView
+    private val dbHelper = MyDatabaseHelper(this)
 
-    private var articuloUrl: String? = null // Para almacenar la URL del artículo
+    private var articuloUrl: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_articulo_carga)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+        // Configurar la barra de estado
+        window.statusBarColor = Color.TRANSPARENT
+        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
 
-        // Inicializar las vistas
+        initializeViews()
+        setupArticulo()
+        setupClickListeners()
+    }
+
+    private fun initializeViews() {
         titleTextView = findViewById(R.id.tituloArticulo)
         dateTextView = findViewById(R.id.fechaArticulo)
         abstractTextView = findViewById(R.id.informacionArticulo)
@@ -48,8 +54,9 @@ class ArticuloCarga : AppCompatActivity() {
         btnGuardar = findViewById(R.id.btnguardarArt)
         btnVerArticulo = findViewById(R.id.btnVerArticulo)
         btnVolver = findViewById(R.id.btnVolverArticulos_Carga)
+    }
 
-        // Obtener el ID del artículo desde el Intent
+    private fun setupArticulo() {
         val articuloId = intent.getIntExtra("ARTICULO_ID", -1)
         if (articuloId == -1) {
             showToast("ID de artículo no válido")
@@ -57,50 +64,68 @@ class ArticuloCarga : AppCompatActivity() {
             return
         }
         cargarArticulo(articuloId)
+    }
 
-        // Funcionalidad para el botón de Volver
+    private fun setupClickListeners() {
         btnVolver.setOnClickListener {
-            finish() // Cierra la actividad
-            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left) // Aplica las animaciones
+            finish()
+            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
-        // Funcionalidad para el botón Guardar
         btnGuardar.setOnClickListener {
-            showToast("Artículo guardado")
+            val articuloId = intent.getIntExtra("ARTICULO_ID", -1)
+            Log.d(articuloId.toString(), "Articulo ID")
+            if (articuloId != -1) {
+                // Verificar si el artículo ya está guardado
+                if (dbHelper.isAriculoSaved(articuloId)) {
+                    dbHelper.unSaveArticulo(articuloId)
+                    btnGuardar.text = "Guardar"
+                    btnGuardar.setBackgroundColor(getColor(R.color.cyan_book)) // Para establecer el color de guardado
+                    showToast("Artículo eliminado")
+                } else {
+                    dbHelper.saveArticulo(articuloId)
+                    btnGuardar.text = "Guardado"
+                    btnGuardar.setBackgroundColor(getColor(R.color.guarado_cyan)) // Para establecer el color de guardado
+                    showToast("Artículo guardado")
+                }
+            }
         }
 
-        // Funcionalidad para el botón Ver Artículo
         btnVerArticulo.setOnClickListener {
             if (articuloUrl.isNullOrEmpty()) {
                 showToast("URL no disponible")
             } else {
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(articuloUrl))
-                startActivity(intent)
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(articuloUrl)))
             }
         }
     }
 
     private fun cargarArticulo(id: Int) {
-        val dbHelper = MyDatabaseHelper(this)
         val articulo = dbHelper.getArticuloById(id)
 
-        if (articulo != null) {
-            titleTextView.text = articulo.title
+        articulo?.let {
+            titleTextView.text = it.title
+            dateTextView.text = "Fecha: ${formatDate(it.publishedAt)}"
+            abstractTextView.text = it.abstract
+            articuloUrl = it.url
 
-
-            // Aplicar formato a la fecha
-            val formattedDate = formatDate(articulo.publishedAt)
-            dateTextView.text = "Fecha: $formattedDate"
-
-            abstractTextView.text = articulo.abstract
-            articuloUrl = articulo.url // Asignar la URL
-
-            // Cargar la imagen usando Glide
             Glide.with(this)
-                .load(articulo.imagenurl)
+                .load(it.imagenurl)
                 .placeholder(R.drawable.no_image)
+                .error(R.drawable.no_image)
                 .into(imageView)
-        } else {
+
+            // Cambiar el texto y color del botón según el estado guardado
+            if (dbHelper.isAriculoSaved(id)) {
+                btnGuardar.text = "Guardada"
+                btnGuardar.setBackgroundColor(ContextCompat.getColor(this, R.color.guarado_cyan)) // Color de artículo guardado
+            } else {
+                btnGuardar.text = "Guardar"
+                btnGuardar.setBackgroundColor(ContextCompat.getColor(this, R.color.cyan_book)) // Color por defecto
+            }
+
+        } ?: run {
+            // Manejo de artículo no encontrado
             titleTextView.text = "Artículo no encontrado"
             dateTextView.text = ""
             abstractTextView.text = ""
@@ -108,21 +133,26 @@ class ArticuloCarga : AppCompatActivity() {
         }
     }
 
+
     private fun formatDate(fecha: String): String {
-        // Ajustar el formato de entrada para que coincida con la fecha que estás recibiendo
-        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault()) // Formato correcto para la fecha
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ", Locale.getDefault())
         val outputFormat = SimpleDateFormat("dd/MM/yyyy hh:mm a", Locale.getDefault())
 
         return try {
             val date = inputFormat.parse(fecha)
-            outputFormat.format(date ?: fecha)
+            outputFormat.format(date ?: return fecha)
         } catch (e: Exception) {
             Log.e("ArticuloCarga", "Error al formatear la fecha: ${e.message}")
-            fecha // En caso de error, retornar la fecha sin formato
+            fecha
         }
     }
 
     private fun showToast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
     }
 }
