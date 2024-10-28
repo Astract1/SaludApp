@@ -12,6 +12,7 @@ import android.view.animation.LayoutAnimationController
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -343,6 +344,8 @@ class perfil : AppCompatActivity() {
     }
 
     private fun cargarNoticiasYArticulos() {
+        val startTime = System.currentTimeMillis()  // Tiempo de inicio
+
         // Cargar noticias guardadas
         val noticiasGuardadas = dbHelper.getNoticiasGuardadas()
         noticiasAdapter.actualizarNoticias(noticiasGuardadas)
@@ -352,6 +355,12 @@ class perfil : AppCompatActivity() {
         val articulosGuardados = dbHelper.getArticulosGuardados()
         articulosAdapter.actualizarArticulos(articulosGuardados)
         noArticulosText.visibility = if (articulosGuardados.isEmpty()) View.VISIBLE else View.GONE
+
+        val endTime = System.currentTimeMillis()  // Tiempo después de la carga
+        val loadTime = endTime - startTime
+
+        // Imprimir el tiempo de carga
+        Toast.makeText(this, "Tiempo de carga: $loadTime ms", Toast.LENGTH_SHORT).show()
     }
 
     private fun abrirDetalleNoticia(noticia: Noticia) {
@@ -369,15 +378,30 @@ class perfil : AppCompatActivity() {
     }
 
     private fun eliminarNoticia(noticia: Noticia) {
-        dbHelper.unSaveNoticia(noticia.id)
-        cargarNoticiasYArticulos()
-        Toast.makeText(this, "Noticia eliminada", Toast.LENGTH_SHORT).show()
+        AlertDialog.Builder(this)
+            .setTitle("Confirmación")
+            .setMessage("¿Estás seguro de que deseas eliminar esta noticia?")
+            .setPositiveButton("Sí") { _, _ ->
+                dbHelper.unSaveNoticia(noticia.id)
+                cargarNoticiasYArticulos()
+                Toast.makeText(this, "Noticia eliminada", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("No", null)
+            .show()
     }
 
+
     private fun eliminarArticulo(articulo: Articulo) {
-        dbHelper.unSaveArticulo(articulo.articleId)
-        cargarNoticiasYArticulos()
-        Toast.makeText(this, "Artículo eliminado", Toast.LENGTH_SHORT).show()
+        AlertDialog.Builder(this)
+            .setTitle("Confirmación")
+            .setMessage("¿Estás seguro de que deseas eliminar este artículo?")
+            .setPositiveButton("Sí") { _, _ ->
+                dbHelper.unSaveArticulo(articulo.articleId)
+                cargarNoticiasYArticulos()
+                Toast.makeText(this, "Artículo eliminado", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("No", null)
+            .show()
     }
 
     override fun onResume() {
