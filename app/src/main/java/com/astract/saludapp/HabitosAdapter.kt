@@ -1,86 +1,88 @@
 package com.astract.saludapp
 
-import android.animation.AnimatorSet
-import android.animation.ObjectAnimator
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
 import android.widget.CheckBox
 import android.widget.TextView
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 
-// Define el adaptador para el RecyclerView
 class HabitosAdapter(
     private val items: MutableList<Habito>,
-
     private val onHabitChanged: (List<Habito>) -> Unit
 ) : RecyclerView.Adapter<HabitosAdapter.ViewHolder>() {
 
-    // ViewHolder para manejar cada ítem del RecyclerView
+    private lateinit var db: FirebaseFirestore
+    private var userId: String? = null
+
+    fun setUserId(newUserId: String) {
+        userId = newUserId
+        db = FirebaseFirestore.getInstance()
+    }
+
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val textView: TextView = itemView.findViewById(R.id.textview_habitos)
         val checkBox: CheckBox = itemView.findViewById(R.id.checkbox_habitos)
     }
 
-    // Crea un nuevo ViewHolder para un ítem en la lista
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.cardviewhabitos, parent, false)
         return ViewHolder(view)
     }
 
-    // Asocia datos con el ViewHolder
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
         holder.textView.text = item.nombre
         holder.checkBox.isChecked = item.completado
 
+        // Removemos el listener anterior para evitar llamadas múltiples
+        holder.checkBox.setOnCheckedChangeListener(null)
+
         holder.checkBox.setOnCheckedChangeListener { _, isChecked ->
             item.completado = isChecked
-            // Llama a la función para animar el CheckBox cuando se marca
-            if (isChecked) {
-                animateCheckBox(holder.checkBox)
+            userId?.let { uid ->
+                updateHabitInFirestore(uid, item)
             }
-            // Actualiza el progreso en el fragmento
             onHabitChanged(items)
         }
     }
 
-    // Retorna el número total de ítems en la lista
-    override fun getItemCount(): Int {
-        return items.size
+    private fun updateHabitInFirestore(userId: String, habito: Habito) {
+        val habitRef = db.collection("users").document(userId)
+            .collection("habitos").document(habito.nombre)
+
+        val habitData = mapOf(
+            "nombre" to habito.nombre,
+            "completado" to habito.completado
+        )
+
+        habitRef.set(habitData, SetOptions.merge())
+            .addOnSuccessListener {
+                Log.d("HabitosAdapter", "Hábito actualizado exitosamente: ${habito.nombre}")
+            }
+            .addOnFailureListener { e ->
+                Log.e("HabitosAdapter", "Error actualizando hábito: ${habito.nombre}", e)
+            }
     }
 
-    // Método para animar el CheckBox
-    private fun animateCheckBox(checkBox: CheckBox) {
-        val scaleX = ObjectAnimator.ofFloat(checkBox, "scaleX", 1.0f, 1.2f, 1.0f)
-        val scaleY = ObjectAnimator.ofFloat(checkBox, "scaleY", 1.0f, 1.2f, 1.0f)
-        val animatorSet = AnimatorSet()
-        animatorSet.playTogether(scaleX, scaleY)
-        animatorSet.duration = 300 // Duración de la animación en milisegundos
-        animatorSet.start()
-    }
+    override fun getItemCount(): Int = items.size
 
-    // Método para añadir un nuevo hábito y notificar cambios
     fun addHabit(habit: Habito) {
         items.add(habit)
+        userId?.let { uid ->
+            updateHabitInFirestore(uid, habit)
+        }
         notifyItemInserted(items.size - 1)
     }
 
-    // Método para obtener la lista de hábitos
-    fun getItems(): List<Habito> {
-        return items
+    fun updateHabits(habitos: List<Habito>) {
+        items.clear()
+        items.addAll(habitos)
+        notifyDataSetChanged()
     }
 
-
-    private fun obtenerFechaActual(): String {
-        val locale = Locale("es", "ES")
-        val formatoFecha = SimpleDateFormat("EEEE d 'de' MMMM, yyyy", locale)
-        val fecha = Date()
-        val fechaFormateada = formatoFecha.format(fecha)
-
-        return fechaFormateada.replaceFirstChar { it.titlecase(locale) }
-    }
+    fun getItems(): List<Habito> = items.toList()
 }

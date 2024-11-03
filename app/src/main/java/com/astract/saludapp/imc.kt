@@ -15,11 +15,12 @@ import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
-import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
-import com.astract.saludapp.database.MyDatabaseHelper
+import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -31,14 +32,14 @@ class imc : Fragment() {
     private lateinit var calcularButton: MaterialButton
     private lateinit var iconArrow: ImageView
     private lateinit var rootView: View
-    private lateinit var dbHelper: MyDatabaseHelper
     private lateinit var botonGuardarMeta: MaterialButton
     private lateinit var valorMetaTextView: TextView
     private lateinit var valorMeta: TextInputEditText
 
-
+    private val sharedViewModel: SharedViewModel by activityViewModels()
+    private val db = FirebaseFirestore.getInstance()
+    private var userId: String? = null
     private var metaIMC: Double? = null
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,13 +52,21 @@ class imc : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        dbHelper = MyDatabaseHelper(requireContext())
+        userId = sharedViewModel.getUserId()
 
         // Inicializamos los elementos de la vista
-        val ultmoIMC = dbHelper.obtenerUltimoIMC()
+        initializeViews(view)
+
+        // Cargar último IMC y meta del usuario
+        cargarUltimoIMC()
+        cargarMetaIMC()
+
+        setupClickListeners()
+    }
+
+    private fun initializeViews(view: View) {
         val fechaTextView: TextView = view.findViewById(R.id.fecha2)
-        val fechaActual = obtenerFechaActual()
-        fechaTextView.text = fechaActual
+        fechaTextView.text = obtenerFechaActual()
 
         pesoEditText = view.findViewById(R.id.peso)
         alturaEditText = view.findViewById(R.id.altura)
@@ -67,37 +76,9 @@ class imc : Fragment() {
         valorMetaTextView = view.findViewById(R.id.valor_meta)
         botonGuardarMeta = view.findViewById(R.id.btnGuardarMetaIMC)
         valorMeta = view.findViewById(R.id.inputMetaIMC)
+    }
 
-        // Referencia al TextView
-        val verHistorialIMC = view.findViewById<TextView>(R.id.ver_historial_imc)
-
-        if (ultmoIMC != null) {
-            valorPesoTextView.text = "IMC: %.2f".format(ultmoIMC)
-
-            // Aplicar colores según la categoría del IMC guardado
-            when {
-                ultmoIMC < 18.5 -> {
-                    valorPesoTextView.setTextColor(Color.BLUE)
-                    valorPesoTextView.text = "Bajo peso\nIMC: %.2f".format(ultmoIMC)
-                }
-                ultmoIMC in 18.5..24.9 -> {
-                    valorPesoTextView.setTextColor(Color.GREEN)
-                    valorPesoTextView.text = "Normal\nIMC: %.2f".format(ultmoIMC)
-                }
-                ultmoIMC in 25.0..29.9 -> {
-                    valorPesoTextView.setTextColor(Color.YELLOW)
-                    valorPesoTextView.text = "Sobrepeso\nIMC: %.2f".format(ultmoIMC)
-                }
-                else -> {
-                    valorPesoTextView.setTextColor(Color.RED)
-                    valorPesoTextView.text = "Obesidad\nIMC: %.2f".format(ultmoIMC)
-                }
-            }
-        } else {
-            valorPesoTextView.text = "IMC: 0.0"
-        }
-
-
+    private fun setupClickListeners() {
         calcularButton.setOnClickListener {
             calcularIMC()
         }
@@ -124,8 +105,69 @@ class imc : Fragment() {
 
         // Asignar el mismo listener tanto al TextView como a la flecha
         iconArrow.setOnClickListener { navigateToHistorial() }
-        verHistorialIMC.setOnClickListener { navigateToHistorial() }
+        view?.findViewById<TextView>(R.id.ver_historial_imc)?.setOnClickListener { navigateToHistorial() }
     }
+
+    private fun cargarUltimoIMC() {
+        userId?.let { uid ->
+            db.collection("users")
+                .document(uid)
+                .collection("historial_imc")
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .limit(1)
+                .get()
+                .addOnSuccessListener { documents ->
+                    if (!documents.isEmpty) {
+                        val ultimoIMC = documents.documents[0].getDouble("imc") ?: 0.0
+                        actualizarVistaIMC(ultimoIMC)
+                    } else {
+                        valorPesoTextView.text = "IMC: 0.0"
+                    }
+                }
+                .addOnFailureListener {
+                    Toast.makeText(context, "Error al cargar el último IMC", Toast.LENGTH_SHORT).show()
+                }
+        }
+    }
+
+    private fun cargarMetaIMC() {
+        userId?.let { uid ->
+            db.collection("users")
+                .document(uid)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document.exists()) {
+                        val meta = document.getDouble("meta_imc")
+                        if (meta != null) {
+                            metaIMC = meta
+                            valorMetaTextView.text = String.format("Meta IMC: %.2f", meta)
+                        }
+                    }
+                }
+        }
+    }
+
+    private fun actualizarVistaIMC(imc: Double) {
+        when {
+            imc < 18.5 -> {
+                valorPesoTextView.setTextColor(Color.BLUE)
+                valorPesoTextView.text = "Bajo peso\nIMC: %.2f".format(imc)
+            }
+            imc in 18.5..24.9 -> {
+                valorPesoTextView.setTextColor(Color.GREEN)
+                valorPesoTextView.text = "Normal\nIMC: %.2f".format(imc)
+            }
+            imc in 25.0..29.9 -> {
+                valorPesoTextView.setTextColor(Color.YELLOW)
+                valorPesoTextView.text = "Sobrepeso\nIMC: %.2f".format(imc)
+            }
+            else -> {
+                valorPesoTextView.setTextColor(Color.RED)
+                valorPesoTextView.text = "Obesidad\nIMC: %.2f".format(imc)
+            }
+        }
+    }
+
     private fun calcularIMC() {
         val peso = pesoEditText.text.toString().toDoubleOrNull()
         val altura = alturaEditText.text.toString().toDoubleOrNull()
@@ -144,30 +186,8 @@ class imc : Fragment() {
         val imc = peso / (alturaMetros * alturaMetros)
         valorPesoTextView.text = String.format("IMC: %.2f", imc)
 
-        when {
-            imc < 18.5 -> {
-                valorPesoTextView.setTextColor(Color.BLUE)
-                valorPesoTextView.text = "Bajo peso\nIMC: %.2f".format(imc)
-            }
-
-            imc in 18.5..24.9 -> {
-                valorPesoTextView.setTextColor(Color.GREEN)
-                valorPesoTextView.text = "Normal\nIMC: %.2f".format(imc)
-            }
-
-            imc in 25.0..29.9 -> {
-                valorPesoTextView.setTextColor(Color.YELLOW)
-                valorPesoTextView.text = "Sobrepeso\nIMC: %.2f".format(imc)
-            }
-
-            else -> {
-                valorPesoTextView.setTextColor(Color.RED)
-                valorPesoTextView.text = "Obesidad\nIMC: %.2f".format(imc)
-            }
-        }
-
+        actualizarVistaIMC(imc)
         mostrarDialogoConfirmacion(imc, peso, altura)
-
     }
 
     private fun mostrarDialogoConfirmacion(imc: Double, peso: Double, altura: Double) {
@@ -176,11 +196,8 @@ class imc : Fragment() {
 
         val mensaje = when {
             diferencia > 0 -> "Necesitas bajar ${"%.2f".format(diferencia)} kg para alcanzar tu peso ideal de ${
-                "%.2f".format(
-                    pesoIdeal
-                )
+                "%.2f".format(pesoIdeal)
             } kg."
-
             diferencia < 0 -> "Estás por debajo de tu peso ideal de ${"%.2f".format(pesoIdeal)} kg."
             else -> "¡Estás en tu peso ideal!"
         }
@@ -195,7 +212,6 @@ class imc : Fragment() {
         val imcTexto =
             "¿Deseas guardar este IMC de ${"%.2f".format(imc)} (IMC Ideal: ${"%.2f".format(22.0)}) con Peso: $peso kg y Altura: $altura cm en tu historial?\n\nCategoría: $categoriaIMC\n$mensaje"
 
-        // Crear un SpannableString para resaltar el IMC Ideal
         val spannableString = SpannableString(imcTexto)
         val start = imcTexto.indexOf("IMC Ideal:") + "IMC Ideal: ".length
         val end = start + "22.00".length
@@ -220,31 +236,43 @@ class imc : Fragment() {
     }
 
     private fun calcularPesoIdeal(altura: Double): Double {
-        val alturaMetros = altura / 100 // Convertir altura a metros
-        val imcIdeal = 22.0 // IMC ideal
-        return imcIdeal * (alturaMetros * alturaMetros) // Peso ideal
+        val alturaMetros = altura / 100
+        val imcIdeal = 22.0
+        return imcIdeal * (alturaMetros * alturaMetros)
     }
 
     private fun guardarEnHistorial(imc: Double, peso: Double, altura: Double) {
-        val fechaActual = obtenerFechaActual()
-        dbHelper.insertHistorialIMC(imc, fechaActual, peso, altura)
+        userId?.let { uid ->
+            val fechaActual = obtenerFechaActual()
+            val registroIMC = hashMapOf(
+                "imc" to imc,
+                "fecha" to fechaActual,
+                "peso" to peso,
+                "altura" to altura,
+                "timestamp" to com.google.firebase.Timestamp.now()
+            )
 
-        Toast.makeText(
-            requireContext(),
-            "IMC guardado en historial: IMC: ${"%.2f".format(imc)}, Peso: $peso kg, Altura: $altura cm",
-            Toast.LENGTH_LONG
-        ).show()
+            db.collection("users")
+                .document(uid)
+                .collection("historial_imc")
+                .add(registroIMC)
+                .addOnSuccessListener {
+                    Toast.makeText(
+                        requireContext(),
+                        "IMC guardado en historial: IMC: ${"%.2f".format(imc)}, Peso: $peso kg, Altura: $altura cm",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    actualizarVistaIMC(imc)
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(
+                        requireContext(),
+                        "Error al guardar el IMC: ${e.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+        }
     }
-
-    private fun obtenerFechaActual(): String {
-        val locale = Locale("es", "ES")
-        val formatoFecha = SimpleDateFormat("EEEE d 'de' MMMM, yyyy", locale)
-        val fecha = Date()
-        val fechaFormateada = formatoFecha.format(fecha)
-
-        return fechaFormateada.replaceFirstChar { it.titlecase(locale) }
-    }
-
 
     private fun guardarMetaIMC() {
         val metaIMCInput = valorMeta.text.toString().toDoubleOrNull()
@@ -254,12 +282,27 @@ class imc : Fragment() {
             return
         }
 
-        metaIMC = metaIMCInput
+        userId?.let { uid ->
+            db.collection("users")
+                .document(uid)
+                .update("meta_imc", metaIMCInput)
+                .addOnSuccessListener {
+                    metaIMC = metaIMCInput
+                    valorMetaTextView.text = String.format("Meta IMC: %.2f", metaIMC)
+                    Toast.makeText(requireContext(), "Meta de IMC guardada: $metaIMC", Toast.LENGTH_LONG).show()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(requireContext(), "Error al guardar la meta: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+        }
+    }
 
-        valorMetaTextView.text = String.format("Meta IMC: %.2f", metaIMC)
+    private fun obtenerFechaActual(): String {
+        val locale = Locale("es", "ES")
+        val formatoFecha = SimpleDateFormat("EEEE d 'de' MMMM, yyyy", locale)
+        val fecha = Date()
+        val fechaFormateada = formatoFecha.format(fecha)
 
-        Toast.makeText(requireContext(), "Meta de IMC guardada : $metaIMC", Toast.LENGTH_LONG)
-            .show()
-
+        return fechaFormateada.replaceFirstChar { it.titlecase(locale) }
     }
 }

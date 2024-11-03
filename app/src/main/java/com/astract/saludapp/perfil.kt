@@ -6,6 +6,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.view.animation.LayoutAnimationController
@@ -15,6 +16,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.astract.saludapp.database.MyDatabaseHelper
@@ -23,8 +25,9 @@ import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
-import com.github.mikephil.charting.animation.Easing
 import com.github.mikephil.charting.formatter.PercentFormatter
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.DocumentSnapshot
 
 class perfil : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
@@ -43,6 +46,9 @@ class perfil : AppCompatActivity() {
     private lateinit var articulosAdapter: GuardarArticuloAdapter
     private lateinit var noNoticiasText: TextView
     private lateinit var noArticulosText: TextView
+    private lateinit var db: FirebaseFirestore
+
+
 
 
     data class RetoSimple(
@@ -60,6 +66,17 @@ class perfil : AppCompatActivity() {
         configurarVolver()
         cargarDatos()
         setupPieChart()
+
+        db = FirebaseFirestore.getInstance()
+        val userId = intent.getStringExtra("userId")
+        if (userId != null) {
+            Log.d("Perfil", "UID del usuario: $userId")
+            obtenerUsuarioPorUID(userId)
+        } else {
+            Log.e("Perfil", "No se encontró UID del usuario")
+        }
+
+
     }
 
     private fun inicializarVistas() {
@@ -347,9 +364,7 @@ class perfil : AppCompatActivity() {
         val startTime = System.currentTimeMillis()  // Tiempo de inicio
 
         // Cargar noticias guardadas
-        val noticiasGuardadas = dbHelper.getNoticiasGuardadas()
-        noticiasAdapter.actualizarNoticias(noticiasGuardadas)
-        noNoticiasText.visibility = if (noticiasGuardadas.isEmpty()) View.VISIBLE else View.GONE
+
 
         // Cargar artículos guardados
         val articulosGuardados = dbHelper.getArticulosGuardados()
@@ -365,7 +380,7 @@ class perfil : AppCompatActivity() {
 
     private fun abrirDetalleNoticia(noticia: Noticia) {
         val intent = Intent(this, Noticias_Carga::class.java).apply {
-           putExtra("NOTICIA_ID", noticia.id)
+            putExtra("NOTICIA_ID", noticia.id)
         }
         startActivity(intent)
     }
@@ -390,7 +405,6 @@ class perfil : AppCompatActivity() {
             .show()
     }
 
-
     private fun eliminarArticulo(articulo: Articulo) {
         AlertDialog.Builder(this)
             .setTitle("Confirmación")
@@ -404,9 +418,26 @@ class perfil : AppCompatActivity() {
             .show()
     }
 
+    private fun obtenerUsuarioPorUID(uuid: String){
+        val userDocRef = db.collection("users").document(uuid)
+
+        userDocRef.get().addOnSuccessListener { document: DocumentSnapshot? ->
+            if (document != null) {
+                val nombre = document.getString("name")
+                val apellido = document.getString("lastName")
+
+                val usernameTextView = findViewById<TextView>(R.id.username_text)
+                usernameTextView.text = "$nombre $apellido"
+            } else {
+                Log.e("Perfil", "No se encontró el documento del usuario")
+            }
+        }.addOnFailureListener { e: Exception ->
+            Log.e("Perfil", "Error al obtener el usuario", e)
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         cargarNoticiasYArticulos()
     }
-
 }

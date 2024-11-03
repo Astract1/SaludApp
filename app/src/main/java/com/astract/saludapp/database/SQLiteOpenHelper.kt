@@ -147,56 +147,9 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
 
 
 
-    fun getAllNoticias(): List<Noticia> {
-        val listaDeNoticias = mutableListOf<Noticia>()
-        val db: SQLiteDatabase = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM $TABLE_NAME", null)
-
-        if (cursor.moveToFirst()) {
-            do {
-                // Aquí asumimos que la columna de origen está en formato JSON o similar
-                val sourceJson = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SOURCE))
-                val source = Source(name = sourceJson)
-
-                val noticia = Noticia(
-                    id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
-                    source = source,
-                    author = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_AUTHOR)),
-                    title = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TITLE)),
-                    description = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)),
-                    url = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_URL)),
-                    urlToImage = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_URL_TO_IMAGE)),
-                    publishedAt = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PUBLISHED_AT)),
-                    content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTENT))
-                )
-                listaDeNoticias.add(noticia)
-            } while (cursor.moveToNext())
-        }
-        cursor.close()
-        db.close()
-        return listaDeNoticias
-    }
 
 
-    fun insertOrUpdateNoticia(noticia: NoticiaEntity) {
-        if (!noticiaExists(noticia.url) && !isRemoved(noticia)) { // Verifica si la noticia ya existe y no está "removed"
-            val db = writableDatabase
-            val values = ContentValues().apply {
-                put(COLUMN_SOURCE, noticia.source)
-                put(COLUMN_AUTHOR, noticia.author)
-                put(COLUMN_TITLE, noticia.title)
-                put(COLUMN_DESCRIPTION, noticia.description)
-                put(COLUMN_URL, noticia.url)
-                put(COLUMN_URL_TO_IMAGE, noticia.urlToImage)
-                put(COLUMN_PUBLISHED_AT, noticia.publishedAt)
-                put(COLUMN_CONTENT, noticia.content)
-            }
-            db.insert(TABLE_NAME, null, values)
-            db.close()
-        } else {
-            Log.d("MyDatabaseHelper", "Noticia ya existe o es 'removed': ${noticia.title}")
-        }
-    }
+
     fun noticiaExists(url: String): Boolean {
         val db = readableDatabase
         val cursor = db.query(
@@ -212,52 +165,6 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
         cursor.close()
         return exists
     }
-
-    fun getNoticiaById(id: Int): Noticia? {
-        val db = readableDatabase
-        val cursor = db.query(
-            TABLE_NAME,
-            null,
-            "$COLUMN_ID = ?",
-            arrayOf(id.toString()),
-            null,
-            null,
-            null
-        )
-
-        return if (cursor.moveToFirst()) {
-            val sourceJson = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SOURCE))
-            val source = Source(name = sourceJson)
-
-            val noticia = Noticia(
-                id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
-                source = source,
-                author = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_AUTHOR)),
-                title = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TITLE)),
-                description = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)),
-                url = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_URL)),
-                urlToImage = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_URL_TO_IMAGE)),
-                publishedAt = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PUBLISHED_AT)),
-                content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTENT))
-            )
-            cursor.close()
-            db.close()
-            noticia
-        } else {
-            cursor.close()
-            db.close()
-            null
-        }
-    }
-
-
-    private fun isRemoved(noticia: NoticiaEntity): Boolean {
-        return noticia.title.contains("removed", ignoreCase = true) ||
-                noticia.description.contains("removed", ignoreCase = true)
-    }
-
-
-
 
     fun getAllArticulos(): List<Articulo> {
         val listaDeArticulos = mutableListOf<Articulo>()
@@ -432,48 +339,7 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
     }
 
 
-    fun getAllHistorialIMC(): List<HistorialIMCData> {
-        val listaDeIMC = mutableListOf<HistorialIMCData>()
-        val db: SQLiteDatabase = this.readableDatabase
 
-        // Verificar si la tabla existe
-        if (!checkTableExists()) {
-            Log.e("MyDatabaseHelper", "La tabla $TABLE_NAME_IMC no existe.")
-            return listaDeIMC // Retornar lista vacía si la tabla no existe
-        }
-
-        var cursor: Cursor? = null
-
-        try {
-            // Realizar la consulta a la tabla
-            val query = "SELECT * FROM $TABLE_NAME_IMC"
-            cursor = db.rawQuery(query, null)
-
-            // Procesar el cursor si hay resultados
-            if (cursor.moveToFirst()) {
-                do {
-                    val id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID_IMC))
-                    val imc = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_IMC))
-                    val fecha = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_FECHA))
-                    val peso = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_PESO))
-                    val altura = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_ALTURA))
-
-                    // Crear el objeto HistorialIMC y agregarlo a la lista
-                    listaDeIMC.add(HistorialIMCData(id,fecha, imc, peso, altura))
-                } while (cursor.moveToNext())
-            } else {
-                Log.e("MyDatabaseHelper", "No se encontró historial IMC.")
-            }
-        } catch (e: SQLiteException) {
-            Log.e("MyDatabaseHelper", "Error al obtener historial IMC: ${e.message}")
-        } finally {
-            // Cerrar el cursor y la base de datos
-            cursor?.close()
-            db.close()
-        }
-
-        return listaDeIMC
-    }
 
     fun checkTableExists(): Boolean {
         val db = this.readableDatabase
@@ -667,40 +533,6 @@ class MyDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NA
     }
 
 
-    fun getNoticiasGuardadas(): List<Noticia> {
-        val noticiasGuardadas = mutableListOf<Noticia>()
-        val db = readableDatabase
-        val cursor = db.query(
-            TABLE_NAME,
-            null,
-            "$COLUMN_IS_SAVED = ?",
-            arrayOf("1"),  // Busca noticias que están marcadas como guardadas
-            null, null, null
-        )
-
-        if (cursor.moveToFirst()) {
-            do {
-                val sourceJson = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SOURCE))
-                val source = Source(name = sourceJson)
-
-                val noticia = Noticia(
-                    id = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID)),
-                    source = source,
-                    author = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_AUTHOR)),
-                    title = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TITLE)),
-                    description = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)),
-                    url = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_URL)),
-                    urlToImage = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_URL_TO_IMAGE)),
-                    publishedAt = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PUBLISHED_AT)),
-                    content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CONTENT))
-                )
-                noticiasGuardadas.add(noticia)
-            } while (cursor.moveToNext())
-        }
-        cursor.close()
-        db.close()
-        return noticiasGuardadas
-    }
 
     fun getArticulosGuardados(): List<Articulo> {
         val articulosGuardados = mutableListOf<Articulo>()

@@ -8,18 +8,18 @@ data class Source(
 
 
 data class Noticia(
-    val id: Int = 0,
-    val source: Source,
-    val author: String = "",
+    val id: Int = 0,  // Es recomendable que el ID sea un String si se va a utilizar el ID de documento de Firestore
     val title: String = "",
     val description: String = "",
+    val content: String = "",
     val url: String = "",
     val urlToImage: String = "",
     val publishedAt: String = "",
-    val content: String = "",
-    val language: String = "es",
-    val category: String = "health"
-)
+    val language: String = "es"
+) {
+    // Constructor sin argumentos necesario para Firestore
+    constructor() : this(0, "", "", "", "", "", "", "es")
+}
 
 
 data class Articulo(
@@ -33,13 +33,13 @@ data class Articulo(
 )
 
 data class HistorialIMCData(
-    val id: Int=0,
+    val id: String,
     val fecha: String,
-    val resultadoIMC: Double,
     val peso: Double,
-    val altura: Double
-
+    val altura: Double,
+    val resultadoIMC: Double
 )
+
 
 
 data class SelloNegro(
@@ -51,6 +51,17 @@ data class SelloNegro(
     val recomendaciones: String,
     val ejemplos: List<String>,
     val imagen_url: String
+)
+
+data class MetaIMCData(
+    val fecha: String,
+    val metaIMC: Double
+
+)
+
+data class Habito(
+    val nombre: String,
+    var completado: Boolean
 )
 
 

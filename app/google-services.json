@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "576294934676",
+    "project_id": "saludapp-1",
+    "storage_bucket": "saludapp-1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:576294934676:android:778de8f1f503e3efb0bc81",
+        "android_client_info": {
+          "package_name": "com.astract.saludapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdiVsKazOxRBCr-SaLhMox3q0i2N35PM8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

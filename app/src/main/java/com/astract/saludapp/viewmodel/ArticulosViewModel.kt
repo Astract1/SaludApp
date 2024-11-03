@@ -8,18 +8,19 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.astract.saludapp.Articulo
-import com.astract.saludapp.database.MyDatabaseHelper
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 
-class ArticuloViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
+class ArticuloViewModel : ViewModel() {
 
     private val _articulos = MutableLiveData<List<Articulo>>()
-    private val _articulo = MutableLiveData<Articulo?>()
+    private val firestore = FirebaseFirestore.getInstance()
     val articulos: LiveData<List<Articulo>> get() = _articulos
 
     private val apiKey = "utwTdMiTaapWmG2FPffXrdtiA2lVyqBX"
@@ -31,10 +32,9 @@ class ArticuloViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
                 val jsonResponse = fetchArticlesFromApi()
                 jsonResponse?.let {
                     parseArticles(it)
-                    loadArticulos() // Cargar los artículos desde la base de datos
-                } ?: Log.e("ArticuloViewModel", "No articles found in response")
+                } ?: Log.e("ArticuloViewModel", "No se encontraron artículos en la respuesta")
             } catch (e: Exception) {
-                Log.e("ArticuloViewModel", "Error fetching articles: ${e.message}")
+                Log.e("ArticuloViewModel", "Error al obtener artículos: ${e.message}")
                 showToast(context, "Error al obtener artículos: ${e.localizedMessage}")
             }
         }
@@ -48,11 +48,11 @@ class ArticuloViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
             if (urlConnection.responseCode == HttpURLConnection.HTTP_OK) {
                 urlConnection.inputStream.bufferedReader().use { it.readText() }
             } else {
-                Log.e("ArticuloViewModel", "Error response code: ${urlConnection.responseCode}")
+                Log.e("ArticuloViewModel", "Código de respuesta de error: ${urlConnection.responseCode}")
                 null
             }
         } catch (e: Exception) {
-            Log.e("ArticuloViewModel", "Error fetching articles: ${e.message}")
+            Log.e("ArticuloViewModel", "Error al obtener artículos: ${e.message}")
             null
         } finally {
             urlConnection.disconnect()
@@ -72,7 +72,6 @@ class ArticuloViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
             val url = articleJson.getString("web_url")
             val publishedDate = articleJson.getString("pub_date")
 
-            // Extraer imagen (si existe)
             var imageUrl: String? = null
             val multimediaArray = articleJson.optJSONArray("multimedia")
             if (multimediaArray != null && multimediaArray.length() > 0) {
@@ -85,7 +84,6 @@ class ArticuloViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
                 }
             }
 
-            // Crear instancia de Articulo
             val articulo = Articulo(
                 title = title,
                 abstract = abstract,
@@ -96,12 +94,28 @@ class ArticuloViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
             )
 
             articles.add(articulo)
-
-            // Guardar en la base de datos
-            dbHelper.insertOrUpdateArticulo(articulo)
+            saveArticuloToFirestore(articulo)
         }
 
         _articulos.postValue(articles)
+    }
+
+    private fun sanitizeUrl(url: String): String {
+        return url.replace("https://", "").replace("http://", "").replace("/", "_")
+    }
+
+    private fun saveArticuloToFirestore(articulo: Articulo) {
+        val sanitizedUrl = sanitizeUrl(articulo.url)
+
+        firestore.collection("articulos")
+            .document(sanitizedUrl)
+            .set(articulo)
+            .addOnSuccessListener {
+                Log.d("ArticuloViewModel", "Artículo guardado exitosamente: ${articulo.title}")
+            }
+            .addOnFailureListener { e ->
+                Log.e("ArticuloViewModel", "Error al guardar el artículo: ${e.message}")
+            }
     }
 
     private fun showToast(context: Context, message: String) {
@@ -112,7 +126,7 @@ class ArticuloViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
         viewModelScope.launch {
             try {
                 val listaDeArticulos = withContext(Dispatchers.IO) {
-                    dbHelper.getAllArticulos()
+                    fetchArticulosFromFirestore()
                 }
                 _articulos.postValue(listaDeArticulos)
             } catch (e: Exception) {
@@ -121,6 +135,17 @@ class ArticuloViewModel(private val dbHelper: MyDatabaseHelper) : ViewModel() {
         }
     }
 
+    private suspend fun fetchArticulosFromFirestore(): List<Articulo> {
+        val articles = mutableListOf<Articulo>()
+        return withContext(Dispatchers.IO) {
+            firestore.collection("articulos")
+                .get()
+                .await()
+                .documents.forEach { document ->
+                    val articulo = document.toObject(Articulo::class.java)
+                    articulo?.let { articles.add(it) }
+                }
+            articles
+        }
+    }
 }
-
-

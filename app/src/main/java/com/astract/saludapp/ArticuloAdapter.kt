@@ -16,8 +16,7 @@ class ArticuloAdapter(
 ) : RecyclerView.Adapter<ArticuloAdapter.ArticuloViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ArticuloViewHolder {
-        val view =
-            LayoutInflater.from(parent.context).inflate(R.layout.cardviewarticulos, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.cardviewarticulos, parent, false)
         return ArticuloViewHolder(view)
     }
 
@@ -58,16 +57,14 @@ class ArticuloAdapter(
 
             // Asignar el OnClickListener al cardButton
             cardButton.setOnClickListener {
-                onClick(articulo) // Llamar al callback con el artículo
-                openDetailActivity(itemView.context, articulo) // Abrir nueva actividad
+                onClick(articulo)
             }
         }
 
         private fun openDetailActivity(context: Context, articulo: Articulo) {
             val intent = Intent(context, ArticuloCarga::class.java)
-            intent.putExtra("ARTICULO_ID", articulo.articleId)
+            intent.putExtra("ARTICULO_URL", articulo.url) // Cambiar a ARTICULO_URL
             context.startActivity(intent)
         }
     }
-
 }

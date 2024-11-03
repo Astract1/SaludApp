@@ -7,11 +7,11 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"
+    <uses-permission
+        android:name="android.permission.SCHEDULE_EXACT_ALARM"
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-
 
     <application
         android:allowBackup="true"
@@ -24,6 +24,24 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SaludApp"
         tools:targetApi="31">
+        <activity
+            android:name=".OlvideContrasenaEspera"
+            android:exported="false" />
+        <activity
+            android:name=".restabler_contrasena"
+            android:exported="false" />
+        <activity
+            android:name=".verificacion_codigo"
+            android:exported="false" />
+        <activity
+            android:name=".olvide_contrasena"
+            android:exported="false" />
+        <activity
+            android:name=".register"
+            android:exported="false" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="false" />
         <activity
             android:name=".perfil"
             android:exported="false" />
@@ -40,7 +58,7 @@
             android:name=".Noticias_Carga"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".Login"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -49,8 +67,9 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".NotificationReceiver" android:exported="false" />
-
+        <receiver
+            android:name=".NotificationReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -4,23 +4,20 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.view.View
-import android.widget.ImageButton
-import android.widget.ProgressBar
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.lifecycle.ViewModelProvider
-import com.astract.saludapp.database.MyDatabaseHelper
 import com.astract.saludapp.viewmodel.ArticuloViewModel
 import com.astract.saludapp.viewmodel.ArticulosViewModelFactory
 import com.google.android.material.appbar.MaterialToolbar
+import android.widget.ProgressBar
+import android.widget.TextView
 
 class Articulos : AppCompatActivity() {
 
     private lateinit var articuloViewModel: ArticuloViewModel
-    private lateinit var dbHelper: MyDatabaseHelper
     private lateinit var adapter: ArticuloAdapter // Asegúrate de tener un adaptador de artículos
     private lateinit var recyclerView: RecyclerView
     private lateinit var searchView: SearchView
@@ -28,26 +25,22 @@ class Articulos : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var toolbar: MaterialToolbar // Cambia el nombre de btnVolver a toolbar
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_articulos) // Asegúrate de que este es tu layout
 
-
         toolbar = findViewById(R.id.toolbar)
-
         toolbar.setNavigationOnClickListener {
-            finish() // Cierra la actividad cuando se presiona el icono de navegación
+            finish()
         }
 
-        dbHelper = MyDatabaseHelper(this)
-
-        // Usa ViewModelProvider para crear el ViewModel con la fábrica
-        articuloViewModel = ViewModelProvider(this, ArticulosViewModelFactory(dbHelper)).get(ArticuloViewModel::class.java)
+        articuloViewModel = ViewModelProvider(this, ArticulosViewModelFactory()).get(ArticuloViewModel::class.java)
 
         recyclerView = findViewById(R.id.recyclerArticulos) // Asegúrate de tener este ID en tu layout
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = ArticuloAdapter(mutableListOf()) { _ -> openArticuloCarga() } // Asegúrate de tener un adaptador para artículos
+        adapter = ArticuloAdapter(mutableListOf()) { articulo ->
+            openArticuloCarga(articulo)
+        }
         recyclerView.adapter = adapter
 
         searchView = findViewById(R.id.searchArticulos) // Asegúrate de tener este ID en tu layout
@@ -60,7 +53,6 @@ class Articulos : AppCompatActivity() {
         progressBar.visibility = View.GONE
         noResultsTextView.visibility = View.GONE
 
-        // Iniciar la carga de artículos después de un breve retraso
         loadArticulosWithDelay()
 
         setupSearchView()
@@ -73,8 +65,6 @@ class Articulos : AppCompatActivity() {
         // Usar Handler para retrasar la carga
         Handler().postDelayed({
             articuloViewModel.fetchAndUpdateArticulos(this)
-            articuloViewModel.loadArticulos()
-
             // Observa el LiveData de artículos
             articuloViewModel.articulos.observe(this) { listaDeArticulos ->
                 progressBar.visibility = View.GONE // Oculta el ProgressBar al recibir datos
@@ -114,8 +104,9 @@ class Articulos : AppCompatActivity() {
         })
     }
 
-    private fun openArticuloCarga() {
-        val intent = Intent(this, ArticuloCarga::class.java) // Asegúrate de tener la actividad correspondiente
+    private fun openArticuloCarga(articulo: Articulo) {
+        val intent = Intent(this, ArticuloCarga::class.java)
+        intent.putExtra("ARTICULO_URL", articulo.url) // Pasa la URL
         startActivity(intent)
         // Aplica las animaciones
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)

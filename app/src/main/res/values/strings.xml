@@ -39,6 +39,7 @@
     <string name="title_articulos">Artículos</string>
     <string name="delete_icon_description">Elimar Resultado del Historial</string>
     <string name="Sellos_Negros">Sellos Negros</string>
+    <string name="default_web_client_id">576294934676-bif3cqkkjik9p5h7ros5eg4d1ofefula.apps.googleusercontent.com</string>
 
 
 </resources>

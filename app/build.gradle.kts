@@ -2,6 +2,7 @@
         alias(libs.plugins.android.application)
         alias(libs.plugins.jetbrains.kotlin.android)
         id("kotlin-kapt")
+        id("com.google.gms.google-services")
         id("androidx.navigation.safeargs.kotlin")
 
     }
@@ -12,6 +13,7 @@
 
         buildFeatures {
             buildConfig = true
+            viewBinding = true
         }
 
         defaultConfig {
@@ -37,6 +39,7 @@
                 buildConfigField("String", "NEWS_API_KEY", "\"${project.findProperty("NEWS_API_KEY") ?: "default_key"}\"")
             }
         }
+
 
         compileOptions {
             sourceCompatibility = JavaVersion.VERSION_1_8
@@ -66,6 +69,7 @@
         implementation("androidx.room:room-runtime:2.6.1")
         implementation("androidx.viewpager2:viewpager2:1.1.0")
         implementation("com.github.bumptech.glide:glide:4.16.0")
+        implementation(libs.firebase.firestore.ktx)
         kapt("com.github.bumptech.glide:compiler:4.16.0")
         kapt("androidx.room:room-runtime:2.6.1")
         annotationProcessor("com.github.bumptech.glide:compiler:4.16.0")
@@ -75,5 +79,10 @@
         testImplementation(libs.junit)
         androidTestImplementation(libs.androidx.junit)
         androidTestImplementation(libs.androidx.espresso.core)
+        implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+        implementation("com.google.firebase:firebase-analytics")
+        implementation("com.google.firebase:firebase-auth-ktx:23.1.0")
+        implementation(("com.google.android.gms:play-services-auth:21.2.0"))
+        implementation("com.google.firebase:firebase-firestore-ktx")
     }
 

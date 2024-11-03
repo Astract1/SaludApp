@@ -8,29 +8,63 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.ImageView
+import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.FirebaseApp
 
 class MainActivity : AppCompatActivity() {
 
+    private var userId: String? = null
+    private val sharedViewModel: SharedViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        FirebaseApp.initializeApp(this)
+        Log.d("MainActivity", "Firebase inicializado")
+
+        val sharedPreferences = getSharedPreferences("myAppPrefs", Context.MODE_PRIVATE)
+        val isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false)
+
+        if (!isLoggedIn) {
+            val intent = Intent(this, Login::class.java)
+            startActivity(intent)
+            finish()
+            return
+        } else {
+            userId = sharedPreferences.getString("userId", null) // Asignar a la variable de clase
+            if (userId != null) {
+                Log.d("MainActivity", "UID del usuario: $userId")
+                sharedViewModel.setUserId(userId) // Establecer userId en el ViewModel
+            } else {
+                Log.e("MainActivity", "No se encontró UID del usuario en SharedPreferences")
+            }
+        }
+
         setContentView(R.layout.activity_main)
         solicitarPermisos()
         setupNavegacion()
 
-        // Configura el clic en el ImageView de perfil para abrir ActivityPerfil
         val profileIcon = findViewById<ImageView>(R.id.profile_icon)
         profileIcon.setOnClickListener {
             val intent = Intent(this, perfil::class.java)
+            intent.putExtra("userId", userId)
+            Log.d("MainActivity", "Enviando userId a perfil: $userId")
             startActivity(intent)
         }
     }
+
+
+
+
 
     private fun setupNavegacion() {
         try {
@@ -95,7 +129,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Para Android 12 (API 31) y superiores - Alarmas exactas
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
             if (!alarmManager.canScheduleExactAlarms()) {
@@ -109,9 +143,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun navigateToFragment(navController: NavController, currentDestinationId: Int?, targetFragmentId: Int) {
         if (currentDestinationId == targetFragmentId) {
-            // Si ya estamos en el fragmento objetivo, volver a cargarlo
             navController.popBackStack(targetFragmentId, false)
+        } else {
+            val bundle = Bundle().apply {
+                putString("userId", userId)
+            }
+            navController.navigate(targetFragmentId, bundle)
         }
-        navController.navigate(targetFragmentId)
     }
 }

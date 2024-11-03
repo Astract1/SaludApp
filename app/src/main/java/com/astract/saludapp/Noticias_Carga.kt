@@ -10,9 +10,12 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import com.astract.saludapp.database.MyDatabaseHelper
 import com.bumptech.glide.Glide
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -25,30 +28,36 @@ class Noticias_Carga : AppCompatActivity() {
     private lateinit var btnGuardar: Button
     private lateinit var btnVerNoticia: Button
     private lateinit var btnVolver: ImageView
-    private val dbHelper = MyDatabaseHelper(this)
+    private val sharedViewModel: SharedViewModel by viewModels()
 
     private var noticiaUrl: String? = null
+    private var userId: String? = null
+    private var isNoticiaGuardada = false
+    private lateinit var db: FirebaseFirestore
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_noticias_carga)
 
-
         window.statusBarColor = Color.TRANSPARENT
         window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
 
-        // Inicializar vistas
+        userId = sharedViewModel.getUserId()
+        if (userId == null) {
+            showToast("Error: Usuario no identificado")
+            finish()
+            return
+        }
+
+        db = Firebase.firestore
         initializeViews()
 
-
-
-
-        // Cargar datos
-        val noticiaId = intent.getIntExtra("NOTICIA_ID", -1)
-        if (noticiaId != -1) {
-            loadNoticiaDetails(noticiaId)
+        noticiaUrl = intent.getStringExtra("NOTICIA_URL")
+        if (noticiaUrl != null) {
+            loadNoticiaDetailsByUrl(noticiaUrl!!)
+            checkIfNoticiaGuardada()
         } else {
-            showToast("ID de noticia no válido")
+            showToast("URL de noticia no válida")
             finish()
             return
         }
@@ -72,30 +81,11 @@ class Noticias_Carga : AppCompatActivity() {
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
         }
 
-
         btnGuardar.setOnClickListener {
-            val noticiaId = intent.getIntExtra("NOTICIA_ID", -1)
-            Log.d(noticiaId.toString(), "NOTICIA ID")
-
-            if (noticiaId != -1) {
-                if (dbHelper.isNoticiaSaved(noticiaId)) {
-                    // Si ya está guardada, quitarla
-                    dbHelper.unSaveNoticia(noticiaId)
-                    btnGuardar.text = "Guardar"
-                    btnGuardar.setBackgroundColor(getColor(R.color.cyan_book)) // Para establecer el color directamente
-
-                    showToast("Noticia eliminada")
-                } else {
-                    // Si no está guardada, guardarla
-                    dbHelper.saveNoticia(noticiaId)
-                    btnGuardar.text = "Guardada"
-                    btnGuardar.setBackgroundColor(getColor(R.color.guarado_cyan)) // Para establecer el color directamente
-
-                    showToast("Noticia guardada")
-                }
-            }
+            noticiaUrl?.let { url ->
+                toggleGuardarNoticia(url)
+            } ?: showToast("URL no disponible")
         }
-
 
         btnVerNoticia.setOnClickListener {
             noticiaUrl?.let { url ->
@@ -104,38 +94,116 @@ class Noticias_Carga : AppCompatActivity() {
         }
     }
 
-    private fun loadNoticiaDetails(id: Int) {
-        val dbHelper = MyDatabaseHelper(this)
-        val noticia = dbHelper.getNoticiaById(id)
+    private fun loadNoticiaDetailsByUrl(noticiaUrl: String) {
+        Log.d("Noticias_Carga", "Cargando detalles para la noticia URL: $noticiaUrl")
 
-        noticia?.let {
-            titleTextView.text = it.title
-            val formattedDate = formatDate(it.publishedAt)
-            dateTextView.text = "Fecha: $formattedDate"
-            infoTextView.text = it.content
-            noticiaUrl = it.url
+        db.collection("noticias")
+            .whereEqualTo("url", noticiaUrl)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                if (!querySnapshot.isEmpty) {
+                    val document = querySnapshot.documents.first()
+                    Log.d("Noticias_Carga", "Documento encontrado: ${document.id}")
 
-            Glide.with(this)
-                .load(it.urlToImage)
-                .placeholder(R.drawable.no_image)
-                .error(R.drawable.no_image)
-                .into(imageView)
+                    val noticia = document.toObject(Noticia::class.java)
+                    noticia?.let {
+                        titleTextView.text = it.title ?: "Título no disponible"
+                        dateTextView.text = "Fecha: ${formatDate(it.publishedAt)}"
+                        infoTextView.text = it.content ?: "Contenido no disponible"
+                        this.noticiaUrl = it.url
 
+                        Glide.with(this)
+                            .load(it.urlToImage)
+                            .placeholder(R.drawable.no_image)
+                            .error(R.drawable.no_image)
+                            .into(imageView)
 
-            if (dbHelper.isNoticiaSaved(id)) {
-                btnGuardar.text = "Guardada"
-                btnGuardar.setBackgroundColor(getColor(R.color.guarado_cyan))
-            } else {
-                btnGuardar.text = "Guardar"
-                btnGuardar.setBackgroundColor(getColor(R.color.cyan_book))
-
+                        Log.d("Noticias_Carga", "Noticia cargada: ${it.title}")
+                    } ?: run {
+                        showToast("No se pudo cargar la noticia")
+                    }
+                } else {
+                    Log.d("Noticias_Carga", "No se encontró la noticia con URL: $noticiaUrl")
+                    showToast("Noticia no encontrada")
+                }
             }
-        } ?: run {
-            titleTextView.text = "Noticia no encontrada"
-            dateTextView.text = ""
-            infoTextView.text = ""
-            showToast("No se pudo cargar la noticia")
+            .addOnFailureListener { e ->
+                Log.e("Noticias_Carga", "Error al cargar la noticia: ${e.message}")
+                showToast("Error al cargar la noticia")
+            }
+    }
+
+    private fun checkIfNoticiaGuardada() {
+        noticiaUrl?.let { url ->
+            userId?.let { uid ->
+                db.collection("users")
+                    .document(uid)
+                    .collection("noticias_guardadas")
+                    .document(url.hashCode().toString())
+                    .get()
+                    .addOnSuccessListener { document ->
+                        isNoticiaGuardada = document.exists()
+                        updateGuardarButtonState()
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("Noticias_Carga", "Error checking saved status: ${e.message}")
+                    }
+            }
         }
+    }
+
+    private fun updateGuardarButtonState() {
+        if (isNoticiaGuardada) {
+            btnGuardar.text = "Guardada"
+            btnGuardar.setBackgroundColor(getColor(R.color.guarado_cyan))
+        } else {
+            btnGuardar.text = "Guardar"
+            btnGuardar.setBackgroundColor(getColor(R.color.cyan_book))
+        }
+    }
+
+    private fun toggleGuardarNoticia(noticiaUrl: String) {
+        userId?.let { uid ->
+            val documentId = noticiaUrl.hashCode().toString()
+            val noticiaRef = db.collection("users")
+                .document(uid)
+                .collection("noticias_guardadas")
+                .document(documentId)
+
+            if (isNoticiaGuardada) {
+                // Eliminar noticia guardada
+                noticiaRef.delete()
+                    .addOnSuccessListener {
+                        isNoticiaGuardada = false
+                        updateGuardarButtonState()
+                        showToast("Noticia eliminada de guardados")
+                    }
+                    .addOnFailureListener { e ->
+                        showToast("Error al eliminar la noticia")
+                        Log.e("Noticias_Carga", "Error eliminando noticia: ${e.message}")
+                    }
+            } else {
+                // Guardar noticia
+                val noticiaData = hashMapOf(
+                    "url" to noticiaUrl,
+                    "title" to titleTextView.text.toString(),
+                    "fecha" to dateTextView.text.toString(),
+                    "content" to infoTextView.text.toString(),
+                    "timestamp" to System.currentTimeMillis()
+                )
+
+                noticiaRef.set(noticiaData)
+                    .addOnSuccessListener {
+                        isNoticiaGuardada = true
+                        updateGuardarButtonState()
+                        showToast("Noticia guardada exitosamente")
+                    }
+                    .addOnFailureListener { e ->
+                        showToast("Error al guardar la noticia")
+                        Log.e("Noticias_Carga", "Error guardando noticia: ${e.message}")
+                    }
+            }
+        } ?: showToast("Error: Usuario no identificado")
     }
 
     private fun formatDate(fecha: String): String {

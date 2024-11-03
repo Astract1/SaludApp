@@ -34,7 +34,6 @@ class GuardarNoticiaAdapter(
         val noticia = noticias[position]
 
         holder.tituloTextView.text = noticia.title
-        holder.fuenteTextView.text = noticia.source?.name ?: "Fuente desconocida"
         holder.fechaTextView.text = formatearFecha(noticia.publishedAt)
 
         Glide.with(holder.imagenNoticia.context)
