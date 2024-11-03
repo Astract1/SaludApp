@@ -18,6 +18,11 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import androidx.navigation.fragment.findNavController
+import android.content.Context
+import android.widget.TextView
+import com.google.firebase.Timestamp
+import java.text.SimpleDateFormat
+import java.util.*
 
 class Historialimc : Fragment() {
 
@@ -27,6 +32,11 @@ class Historialimc : Fragment() {
     private val sharedViewModel: SharedViewModel by activityViewModels()
     private val db = FirebaseFirestore.getInstance()
     private var userId: String? = null
+
+    // Configurar el formateador de fecha con la zona horaria local
+    private val dateFormatter = SimpleDateFormat("EEEE d 'de' MMMM, yyyy 'a las' HH:mm", Locale("es", "ES")).apply {
+        timeZone = Calendar.getInstance().timeZone
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,22 +50,27 @@ class Historialimc : Fragment() {
 
         userId = sharedViewModel.getUserId()
 
-        // Configurar RecyclerView
         recyclerView = view.findViewById(R.id.recyclerViewHistorial)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        // Configurar LineChart
         lineChart = view.findViewById(R.id.lineChart)
 
-        // Cargar los datos desde Firebase
         cargarDatosHistorial()
 
-        // Configurar listeners para volver a la calculadora IMC
         val volverTextView: View = view.findViewById(R.id.ver_historial_imc)
         val iconArrow: View = view.findViewById(R.id.icon_arrow)
 
         volverTextView.setOnClickListener { iniciarAnimacionDeScroll(view) }
         iconArrow.setOnClickListener { iniciarAnimacionDeScroll(view) }
+    }
+
+    private fun obtenerFechaActualFormateada(): String {
+        val calendar = Calendar.getInstance()
+        return dateFormatter.format(calendar.time)
+    }
+
+    private fun formatearFecha(timestamp: Long): String {
+        return dateFormatter.format(Date(timestamp))
     }
 
     private fun cargarDatosHistorial() {
@@ -69,36 +84,38 @@ class Historialimc : Fragment() {
                     val historialList = mutableListOf<HistorialIMCData>()
 
                     for (document in documents) {
-                        val imc = document.getDouble("imc") ?: 0.0
-                        val fecha = document.getString("fecha") ?: ""
-                        val peso = document.getDouble("peso") ?: 0.0
-                        val altura = document.getDouble("altura") ?: 0.0
+                        try {
+                            val imc = document.getDouble("imc") ?: 0.0
+                            val peso = document.getDouble("peso") ?: 0.0
+                            val altura = document.getDouble("altura") ?: 0.0
+                            val timestamp = document.getTimestamp("timestamp")
+                            val fechaStr = document.getString("fecha") ?: ""
 
-                        historialList.add(
-                            HistorialIMCData(
-                                id = document.id,
-                                fecha = fecha,
-                                peso = peso,
-                                altura = altura,
-                                resultadoIMC = imc
+                            historialList.add(
+                                HistorialIMCData(
+                                    id = document.id,
+                                    peso = peso,
+                                    altura = altura,
+                                    resultadoIMC = imc,
+                                    timestamp = timestamp ?: Timestamp.now(),
+                                    fecha = fechaStr
+                                )
                             )
-                        )
+                        } catch (e: Exception) {
+                            println("Error al procesar documento: ${e.message}")
+                        }
                     }
 
-                    // Configurar el adaptador con los nuevos datos, pasando el userId
                     historialIMCAdapter = HistorialIMCAdapter(
                         historialList,
                         requireContext(),
-                        uid,  // Pasamos el userId al adaptador
-                        { onItemDeleted() }
-                    )
+                        uid
+                    ) { onItemDeleted() }
                     recyclerView.adapter = historialIMCAdapter
 
-                    // Configurar el gráfico
                     configurarGraficoIMC(historialList)
                 }
                 .addOnFailureListener { exception ->
-                    // Manejar el error
                     println("Error al cargar el historial: ${exception.message}")
                 }
         }
@@ -106,7 +123,6 @@ class Historialimc : Fragment() {
 
     private fun configurarGraficoIMC(historialIMCList: List<HistorialIMCData>) {
         val entries = ArrayList<Entry>()
-        // Invertir la lista para que el gráfico muestre la progresión cronológica
         val listaOrdenada = historialIMCList.reversed()
 
         for (i in listaOrdenada.indices) {
@@ -149,5 +165,62 @@ class Historialimc : Fragment() {
 
             override fun onAnimationRepeat(animation: Animation?) {}
         })
+    }
+
+    // Función actualizada para guardar nuevo registro con timestamp
+    fun guardarNuevoRegistroIMC(peso: Double, altura: Double, imc: Double) {
+        // Obtener la fecha y hora actual en la zona horaria local
+        val calendar = Calendar.getInstance()
+        val timestamp = Timestamp(Date(calendar.timeInMillis))
+        val fechaActual = dateFormatter.format(calendar.time)
+
+        val nuevoRegistro = hashMapOf(
+            "peso" to peso,
+            "altura" to altura,
+            "imc" to imc,
+            "fecha" to fechaActual,
+            "timestamp" to timestamp
+        )
+
+        userId?.let { uid ->
+            db.collection("users")
+                .document(uid)
+                .collection("historial_imc")
+                .add(nuevoRegistro)
+                .addOnSuccessListener {
+                    cargarDatosHistorial()
+                }
+                .addOnFailureListener { e ->
+                    println("Error al guardar el registro: ${e.message}")
+                }
+        }
+    }
+
+    fun actualizarRegistroIMC(id: String, peso: Double, altura: Double, imc: Double) {
+        val calendar = Calendar.getInstance()
+        val timestamp = Timestamp(Date(calendar.timeInMillis))
+        val fechaActual = dateFormatter.format(calendar.time)
+
+        val actualizacionRegistro = hashMapOf(
+            "peso" to peso,
+            "altura" to altura,
+            "imc" to imc,
+            "fecha" to fechaActual,
+            "timestamp" to timestamp
+        )
+
+        userId?.let { uid ->
+            db.collection("users")
+                .document(uid)
+                .collection("historial_imc")
+                .document(id)
+                .update(actualizacionRegistro as Map<String, Any>)
+                .addOnSuccessListener {
+                    cargarDatosHistorial()
+                }
+                .addOnFailureListener { e ->
+                    println("Error al actualizar el registro: ${e.message}")
+                }
+        }
     }
 }

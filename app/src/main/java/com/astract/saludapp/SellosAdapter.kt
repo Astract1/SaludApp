@@ -8,6 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 
 class SellosAdapter(private val sellos: List<SelloNegro>) : RecyclerView.Adapter<SellosAdapter.SelloViewHolder>() {
 
@@ -17,24 +18,26 @@ class SellosAdapter(private val sellos: List<SelloNegro>) : RecyclerView.Adapter
         val resumen: TextView = view.findViewById(R.id.cardSubtitleSello)
 
         init {
-            // Agregar el listener para el clic en el item
-            itemView.setOnClickListener {
-                // Recuperar la información del sello al hacer clic
-                val context = itemView.context
-                val position = adapterPosition
+            // Configurar el tamaño de la ImageView
+            imagen.layoutParams = imagen.layoutParams.apply {
+                width = 300
+                height = 300
+            }
+            imagen.scaleType = ImageView.ScaleType.CENTER_CROP
 
+            itemView.setOnClickListener {
+                val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
                     val sello = sellos[position]
-                    val intent = Intent(context, info_sellos_negros::class.java)
-                    // Convierte el id a String antes de pasarlo
+                    val intent = Intent(itemView.context, info_sellos_negros::class.java)
                     intent.putExtra("sello_id", sello.id.toString())
-                    context.startActivity(intent)
+                    itemView.context.startActivity(intent)
                 }
             }
         }
     }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SelloViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SelloViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.cardviewsellos, parent, false)
         return SelloViewHolder(view)
@@ -45,13 +48,19 @@ class SellosAdapter(private val sellos: List<SelloNegro>) : RecyclerView.Adapter
         holder.nombre.text = sello.nombre
         holder.resumen.text = sello.resumen
 
-        // Cargar la imagen con Glide
+        // Configurar opciones de Glide para el tamaño y el formato
+        val requestOptions = RequestOptions()
+            .override(300, 300)
+            .centerCrop()
+            .placeholder(R.drawable.no_image)
+            .error(R.drawable.no_image)
+
+        // Cargar la imagen con Glide usando las opciones configuradas
         Glide.with(holder.itemView.context)
             .load(sello.imagen_url)
+            .apply(requestOptions)
             .into(holder.imagen)
     }
 
-    override fun getItemCount(): Int {
-        return sellos.size
-    }
+    override fun getItemCount(): Int = sellos.size
 }

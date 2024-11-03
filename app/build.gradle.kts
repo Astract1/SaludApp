@@ -84,5 +84,11 @@
         implementation("com.google.firebase:firebase-auth-ktx:23.1.0")
         implementation(("com.google.android.gms:play-services-auth:21.2.0"))
         implementation("com.google.firebase:firebase-firestore-ktx")
+        implementation("com.google.firebase:firebase-storage-ktx")
+        implementation("io.coil-kt.coil3:coil-compose:3.0.0-rc02")
+        implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.0-rc02")
+        implementation("io.coil-kt.coil3:coil-svg:3.0.0-rc02")
+        implementation ("com.cloudinary:cloudinary-android:2.3.1")
+        implementation ("com.squareup.okhttp3:okhttp:4.9.1")
     }
 

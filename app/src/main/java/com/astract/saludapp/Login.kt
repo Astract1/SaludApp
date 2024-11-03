@@ -3,48 +3,43 @@ package com.astract.saludapp
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.astract.saludapp.databinding.ActivityLoginBinding
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.auth.api.signin.GoogleSignInClient
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.tasks.Task
-import com.google.firebase.auth.FirebaseAuthException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
-import com.google.firebase.auth.FirebaseAuthUserCollisionException
-import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+
 
 class Login : AppCompatActivity() {
-
     private lateinit var binding: ActivityLoginBinding
     private lateinit var auth: FirebaseAuth
-    private lateinit var googleSignInClient: GoogleSignInClient
-    private val sharedViewModel: SharedViewModel by viewModels() // Obtén el ViewModel compartido
+    private val sharedViewModel: SharedViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Verificar si ya hay una sesión activa
+        if (checkLoginStatus()) {
+            navigateToMain()
+            return
+        }
+
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         auth = FirebaseAuth.getInstance()
-
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(getString(R.string.default_web_client_id)) // Asegúrate de tener este ID en strings.xml
-            .requestEmail()
-            .build()
-
-        googleSignInClient = GoogleSignIn.getClient(this, gso)
-
         setupClickListeners()
+    }
+
+    private fun checkLoginStatus(): Boolean {
+        val sharedPreferences = getSharedPreferences("myAppPrefs", Context.MODE_PRIVATE)
+        val isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false)
+        val savedEmail = sharedPreferences.getString("userEmail", null)
+        val savedUserId = sharedPreferences.getString("userId", null)
+
+        return isLoggedIn && !savedEmail.isNullOrEmpty() && !savedUserId.isNullOrEmpty()
     }
 
     private fun setupClickListeners() {
@@ -54,7 +49,6 @@ class Login : AppCompatActivity() {
         }
 
         binding.buttonLogin.setOnClickListener {
-            Log.d("Login", "Botón de inicio de sesión presionado")
             loginUser()
         }
 
@@ -78,21 +72,8 @@ class Login : AppCompatActivity() {
                 if (task.isSuccessful) {
                     val user = auth.currentUser
                     if (user?.isEmailVerified == true) {
-                        Toast.makeText(this, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show()
-
-                        // Guardar userId en SharedPreferences
-                        val sharedPreferences = getSharedPreferences("myAppPrefs", Context.MODE_PRIVATE)
-                        val editor = sharedPreferences.edit()
-                        editor.putBoolean("isLoggedIn", true)
-                        editor.putString("userId", user.uid)
-                        editor.apply()
-
-                        // Establecer userId en el SharedViewModel
-                        sharedViewModel.setUserId(user.uid)
-
-                        val intent = Intent(this, MainActivity::class.java)
-                        startActivity(intent)
-                        finish()
+                        saveUserSession(user.uid, email)
+                        navigateToMain()
                     } else {
                         Toast.makeText(this, "Por favor verifica tu correo electrónico", Toast.LENGTH_SHORT).show()
                         auth.signOut()
@@ -103,6 +84,24 @@ class Login : AppCompatActivity() {
             }
     }
 
+    private fun saveUserSession(userId: String, email: String) {
+        val sharedPreferences = getSharedPreferences("myAppPrefs", Context.MODE_PRIVATE)
+        sharedPreferences.edit().apply {
+            putBoolean("isLoggedIn", true)
+            putString("userId", userId)
+            putString("userEmail", email)
+            apply()
+        }
+        sharedViewModel.setUserId(userId)
+    }
+
+    private fun navigateToMain() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+    }
+
     private fun handleLoginError(exception: Exception?) {
         when (exception) {
             is FirebaseAuthInvalidUserException -> {
@@ -111,70 +110,9 @@ class Login : AppCompatActivity() {
             is FirebaseAuthInvalidCredentialsException -> {
                 Toast.makeText(this, "Contraseña incorrecta", Toast.LENGTH_SHORT).show()
             }
-            is FirebaseAuthUserCollisionException -> {
-                Toast.makeText(this, "El correo ya está en uso", Toast.LENGTH_SHORT).show()
-            }
-            is FirebaseAuthWeakPasswordException -> {
-                Toast.makeText(this, "La contraseña es demasiado débil", Toast.LENGTH_SHORT).show()
-            }
-            is FirebaseAuthException -> {
-                Toast.makeText(this, "Error de autenticación: ${exception.message}", Toast.LENGTH_SHORT).show()
-            }
             else -> {
-                Toast.makeText(this, "Error desconocido: ${exception?.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error: ${exception?.message}", Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-    private val startForResult = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == RESULT_OK) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            handleSignInResult(task)
-        }
-    }
-
-    private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>) {
-        try {
-            val account = completedTask.getResult(ApiException::class.java)
-            firebaseAuthWithGoogle(account!!)
-        } catch (e: ApiException) {
-            Toast.makeText(this, "Error al iniciar sesión con Google: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun firebaseAuthWithGoogle(account: GoogleSignInAccount) {
-        val credential = GoogleAuthProvider.getCredential(account.idToken, null)
-        auth.signInWithCredential(credential)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    val user = auth.currentUser
-                    if (user != null && user.isEmailVerified) {
-                        Toast.makeText(this, "Inicio de sesión con Google exitoso", Toast.LENGTH_SHORT).show()
-
-                        // Guardar userId en SharedPreferences
-                        val sharedPreferences = getSharedPreferences("myAppPrefs", Context.MODE_PRIVATE)
-                        val editor = sharedPreferences.edit()
-                        editor.putBoolean("isLoggedIn", true)
-                        editor.putString("userId", user.uid)
-                        editor.apply()
-
-                        // Establecer userId en el SharedViewModel
-                        sharedViewModel.setUserId(user.uid)
-
-                        val intent = Intent(this, MainActivity::class.java)
-                        startActivity(intent)
-                        finish()
-                    } else {
-                        Toast.makeText(this, "Por favor verifica tu correo electrónico", Toast.LENGTH_SHORT).show()
-                        auth.signOut()
-                    }
-                } else {
-                    Toast.makeText(this, "Error al iniciar sesión: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
-                }
-            }
-    }
-
-    companion object {
-        private const val RC_SIGN_IN = 9001
     }
 }

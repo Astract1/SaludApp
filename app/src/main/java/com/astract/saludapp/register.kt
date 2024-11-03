@@ -124,11 +124,16 @@ class register : AppCompatActivity() {
     private fun saveUserData() {
         val user = auth.currentUser
         if (user != null) {
+            val firstName = binding.editTextName.text.toString().trim()
+            val lastName = binding.editTextLastName.text.toString().trim()
+            val defaultAvatarUrl = "https://ui-avatars.com/api/?name=${firstName}+${lastName}&background=random&size=200"
+
             val userData = hashMapOf(
-                Pair("name", binding.editTextName.text.toString().trim()),
-                Pair("lastName", binding.editTextLastName.text.toString().trim()),
-                Pair("email", user.email),
-                Pair("createdAt", System.currentTimeMillis())
+                "name" to firstName,
+                "lastName" to lastName,
+                "email" to user.email,
+                "createdAt" to System.currentTimeMillis(),
+                "profileImage" to defaultAvatarUrl
             )
 
             FirebaseFirestore.getInstance().collection("users")
@@ -136,7 +141,6 @@ class register : AppCompatActivity() {
                 .set(userData)
                 .addOnSuccessListener {
                     Toast.makeText(this, "Registro exitoso", Toast.LENGTH_SHORT).show()
-                    // Navegar a la actividad de inicio de sesión
                     startActivity(Intent(this, Login::class.java))
                     finish()
                 }
@@ -148,47 +152,5 @@ class register : AppCompatActivity() {
 
 
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == RC_SIGN_IN) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-            try {
-                val account = task.getResult(ApiException::class.java)
-                firebaseAuthWithGoogle(account.idToken!!)
-            } catch (e: ApiException) {
-                Toast.makeText(this, "Error en el inicio de sesión con Google", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun firebaseAuthWithGoogle(idToken: String) {
-        val credential = GoogleAuthProvider.getCredential(idToken, null)
-        auth.signInWithCredential(credential)
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    val user = auth.currentUser
-                    if (user != null) {
-                        val userData = hashMapOf(
-                            Pair("name", user.displayName?.split(" ")?.firstOrNull() ?: ""),
-                            Pair("lastName", user.displayName?.split(" ")?.lastOrNull() ?: ""),
-                            Pair("email", user.email),
-                            Pair("createdAt", System.currentTimeMillis()),
-                            Pair("registeredWithGoogle", true)
-                        )
-
-                        FirebaseFirestore.getInstance().collection("users")
-                            .document(user.uid)
-                            .set(userData)
-                            .addOnSuccessListener {
-                                Toast.makeText(this, "Registro con Google exitoso", Toast.LENGTH_SHORT).show()
-                                startActivity(Intent(this, Login::class.java))
-                                finish()
-                            }
-                    }
-                } else {
-                    Toast.makeText(this, "Error en la autenticación con Google", Toast.LENGTH_SHORT).show()
-                }
-            }
-    }
 }

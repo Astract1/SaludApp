@@ -2,11 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+
     <uses-permission
         android:name="android.permission.SCHEDULE_EXACT_ALARM"
         tools:ignore="ProtectedPermissions" />
@@ -26,12 +33,6 @@
         tools:targetApi="31">
         <activity
             android:name=".OlvideContrasenaEspera"
-            android:exported="false" />
-        <activity
-            android:name=".restabler_contrasena"
-            android:exported="false" />
-        <activity
-            android:name=".verificacion_codigo"
             android:exported="false" />
         <activity
             android:name=".olvide_contrasena"

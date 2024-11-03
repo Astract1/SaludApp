@@ -1,24 +1,42 @@
 package com.astract.saludapp
 
+
+import android.Manifest
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
+import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.view.animation.LayoutAnimationController
 import android.widget.ImageView
+import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.activityViewModels
+import androidx.core.content.res.ResourcesCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import coil3.load
+import coil3.request.crossfade
+import coil3.request.error
+import coil3.request.placeholder
+import coil3.request.transformations
+import coil3.transform.CircleCropTransformation
 import com.astract.saludapp.database.MyDatabaseHelper
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Legend
@@ -26,8 +44,15 @@ import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.PercentFormatter
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.ByteArrayOutputStream
+
 
 class perfil : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
@@ -47,8 +72,8 @@ class perfil : AppCompatActivity() {
     private lateinit var noNoticiasText: TextView
     private lateinit var noArticulosText: TextView
     private lateinit var db: FirebaseFirestore
-
-
+    private lateinit var storage: FirebaseStorage
+    private lateinit var profileImage: ImageView
 
 
     data class RetoSimple(
@@ -68,13 +93,22 @@ class perfil : AppCompatActivity() {
         setupPieChart()
 
         db = FirebaseFirestore.getInstance()
+
+        storage = FirebaseStorage.getInstance()
+
+
         val userId = intent.getStringExtra("userId")
         if (userId != null) {
             Log.d("Perfil", "UID del usuario: $userId")
             obtenerUsuarioPorUID(userId)
+            setupMenuOptions()
         } else {
             Log.e("Perfil", "No se encontró UID del usuario")
         }
+
+        profileImage = findViewById(R.id.profile_image)
+
+        loadProfileImage()
 
 
     }
@@ -276,7 +310,8 @@ class perfil : AppCompatActivity() {
             imcEstadoTextView.text = estado
 
             // Animar el cambio de color
-            val colorFrom = (imcColorIndicator.background as? ColorDrawable)?.color ?: Color.TRANSPARENT
+            val colorFrom =
+                (imcColorIndicator.background as? ColorDrawable)?.color ?: Color.TRANSPARENT
             ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo).apply {
                 duration = 500
                 addUpdateListener { animator ->
@@ -307,7 +342,8 @@ class perfil : AppCompatActivity() {
 
         cursor.use {
             if (it.moveToFirst()) {
-                fecha = it.getString(it.getColumnIndexOrThrow(MyDatabaseHelper.COLUMN_FECHA_INSCRIPCION))
+                fecha =
+                    it.getString(it.getColumnIndexOrThrow(MyDatabaseHelper.COLUMN_FECHA_INSCRIPCION))
             }
         }
 
@@ -418,7 +454,7 @@ class perfil : AppCompatActivity() {
             .show()
     }
 
-    private fun obtenerUsuarioPorUID(uuid: String){
+    private fun obtenerUsuarioPorUID(uuid: String) {
         val userDocRef = db.collection("users").document(uuid)
 
         userDocRef.get().addOnSuccessListener { document: DocumentSnapshot? ->
@@ -434,6 +470,334 @@ class perfil : AppCompatActivity() {
         }.addOnFailureListener { e: Exception ->
             Log.e("Perfil", "Error al obtener el usuario", e)
         }
+    }
+
+
+    private fun setupMenuOptions() {
+        findViewById<ImageView>(R.id.menu_options).setOnClickListener { view ->
+            showPopupMenu(view)
+        }
+    }
+
+    private fun showPopupMenu(view: View) {
+        PopupMenu(this, view).apply {
+            menuInflater.inflate(R.menu.profile_menu, menu)
+            setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.edit_photo -> {
+                        openImagePicker()
+                        true
+                    }
+
+                    R.id.logout -> {
+                        showLogoutConfirmation()
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+            show()
+        }
+    }
+
+    private fun openImagePicker() {
+        if (checkAndRequestPermissions()) {
+            showImageSourceDialog()
+        }
+    }
+
+    private fun checkAndRequestPermissions(): Boolean {
+        val permissions = mutableListOf<String>()
+
+        // Permiso de cámara
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            permissions.add(Manifest.permission.CAMERA)
+        }
+
+        // Permisos de almacenamiento según la versión de Android
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                permissions.add(Manifest.permission.READ_MEDIA_IMAGES)
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+                permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
+        }
+
+        if (permissions.isNotEmpty()) {
+            ActivityCompat.requestPermissions(
+                this,
+                permissions.toTypedArray(),
+                PERMISSIONS_REQUEST_CODE
+            )
+            return false
+        }
+
+        return true
+    }
+
+    private fun showImageSourceDialog() {
+        val options = arrayOf("Tomar foto", "Elegir de galería")
+        AlertDialog.Builder(this)
+            .setTitle("Seleccionar imagen")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> openCamera()
+                    1 -> openGallery()
+                }
+            }
+            .show()
+    }
+
+    private fun openCamera() {
+        Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { intent ->
+            intent.resolveActivity(packageManager)?.also {
+                startActivityForResult(intent, CAMERA_REQUEST)
+            }
+        }
+    }
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.type = "image/*"
+        startActivityForResult(intent, GALLERY_REQUEST)
+    }
+
+    private fun showLogoutConfirmation() {
+        AlertDialog.Builder(this)
+            .setTitle("Cerrar sesión")
+            .setMessage("¿Estás seguro que deseas cerrar sesión?")
+            .setPositiveButton("Sí") { _, _ ->
+                logout()
+            }
+            .setNegativeButton("No", null)
+            .show()
+    }
+
+    fun logout() {
+        val sharedPreferences = getSharedPreferences("myAppPrefs", Context.MODE_PRIVATE)
+        sharedPreferences.edit().clear().apply()
+
+        FirebaseAuth.getInstance().signOut()
+        redirectToLogin()
+    }
+
+
+    private fun redirectToLogin() {
+        val intent = Intent(this, Login::class.java)
+        startActivity(intent)
+        finish()
+    }
+
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            PERMISSIONS_REQUEST_CODE -> {
+                if (grantResults.isNotEmpty() &&
+                    grantResults.all { it == PackageManager.PERMISSION_GRANTED }
+                ) {
+                    showImageSourceDialog()
+                } else {
+                    Toast.makeText(
+                        this,
+                        "Se requieren permisos para esta funcionalidad",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == RESULT_OK) {
+            when (requestCode) {
+                CAMERA_REQUEST -> {
+                    val imageBitmap = data?.extras?.get("data") as? Bitmap
+                    imageBitmap?.let {
+                        val uri = getImageUriFromBitmap(it)
+                        uploadImageToCloudinary(uri)
+                    }
+                }
+
+                GALLERY_REQUEST -> {
+                    data?.data?.let { uri ->
+                        uploadImageToCloudinary(uri)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getImageUriFromBitmap(bitmap: Bitmap): Uri {
+        val bytes = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
+        val path = MediaStore.Images.Media.insertImage(
+            contentResolver,
+            bitmap,
+            "Title",
+            null
+        )
+        return Uri.parse(path)
+    }
+
+    private fun uploadImageToCloudinary(imageUri: Uri) {
+        val progressDialog = ProgressDialog(this).apply {
+            setTitle("Actualizando foto de perfil")
+            setMessage("Por favor espere...")
+            show()
+        }
+
+        val userId = intent.getStringExtra("userId")
+        if (userId == null) {
+            progressDialog.dismiss()
+            Toast.makeText(this, "Error: Usuario no identificado", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                // Usar CloudinaryManager directamente
+                val imageUrl = CloudinaryManager.uploadImage(imageUri)
+                withContext(Dispatchers.Main) {
+                    updateProfileImage(imageUrl)
+                    progressDialog.dismiss()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    Toast.makeText(
+                        this@perfil,
+                        "Error al subir la imagen: ${e.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+    }
+
+    private fun updateProfileImage(imageUrl: String) {
+        val userId = intent.getStringExtra("userId") ?: run {
+            Log.e("ProfileActivity", "userId is null")
+            return
+        }
+
+        db.collection("users").document(userId)
+            .update("profileImage", imageUrl)
+            .addOnSuccessListener {
+                findViewById<ImageView>(R.id.profile_image)?.let { imageView ->
+                    loadImageWithCoil(imageView, imageUrl)
+                }
+                Toast.makeText(this, "Foto de perfil actualizada", Toast.LENGTH_SHORT).show()
+            }
+            .addOnFailureListener { e ->
+                Log.e("ProfileActivity", "Error updating document", e)
+                Toast.makeText(this, "Error al actualizar la foto", Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun loadImageWithCoil(imageView: ImageView, url: String?) {
+        try {
+            // Use a safe default drawable
+            val defaultDrawable = ResourcesCompat.getDrawable(
+                resources,
+                android.R.drawable.ic_menu_gallery,
+                null
+            )
+
+            if (url.isNullOrEmpty()) {
+                imageView.setImageDrawable(defaultDrawable)
+                return
+            }
+
+            imageView.load(url) {
+                crossfade(true)
+                placeholder(defaultDrawable)
+                error(defaultDrawable)
+                transformations(CircleCropTransformation())
+                listener(
+                    onStart = {
+                        Log.d("ProfileActivity", "Started loading image from $url")
+                    },
+                    onSuccess = { _, _ ->
+                        Log.d("ProfileActivity", "Successfully loaded image from $url")
+                    },
+                    onError = { _, error ->
+                        Log.e("ProfileActivity", "Error loading image from $url", error.throwable)
+                        imageView.setImageDrawable(defaultDrawable)
+                    }
+                )
+            }
+        } catch (e: Exception) {
+            Log.e("ProfileActivity", "Error in loadImageWithCoil", e)
+            // Fallback to a very basic drawable if everything else fails
+            try {
+                imageView.setImageResource(android.R.drawable.ic_menu_gallery)
+            } catch (e2: Exception) {
+                Log.e("ProfileActivity", "Failed to set fallback image", e2)
+            }
+        }
+    }
+
+
+    private fun loadProfileImage() {
+        val userId = intent.getStringExtra("userId") ?: run {
+            Log.e("ProfileActivity", "userId is null")
+            return
+        }
+
+        val imageView = findViewById<ImageView>(R.id.profile_image) ?: run {
+            Log.e("ProfileActivity", "profile_image view not found")
+            return
+        }
+
+        try {
+
+            ResourcesCompat.getDrawable(resources, android.R.drawable.ic_menu_gallery, null)?.let {
+                imageView.setImageDrawable(it)
+            }
+        } catch (e: Exception) {
+            Log.e("ProfileActivity", "Error setting initial image", e)
+        }
+
+        db.collection("users").document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                val imageUrl = document.getString("profileImage")
+                loadImageWithCoil(imageView, imageUrl)
+            }
+            .addOnFailureListener { e ->
+                Log.e("ProfileActivity", "Error getting document", e)
+                try {
+                    imageView.setImageResource(android.R.drawable.ic_menu_gallery)
+                } catch (e2: Exception) {
+                    Log.e("ProfileActivity", "Failed to set fallback image", e2)
+                }
+            }
+    }
+
+
+
+
+
+
+    companion object {
+        private const val PERMISSIONS_REQUEST_CODE = 100
+        private const val CAMERA_REQUEST = 1
+        private const val GALLERY_REQUEST = 2
     }
 
     override fun onResume() {

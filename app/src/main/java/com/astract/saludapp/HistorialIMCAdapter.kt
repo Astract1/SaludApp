@@ -11,15 +11,18 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.firestore.FirebaseFirestore
+import java.text.SimpleDateFormat
+import java.util.*
 
 class HistorialIMCAdapter(
     private var historialIMCList: MutableList<HistorialIMCData>,
     private val context: Context,
-    private val userId: String, // Añadido userId como parámetro del constructor
+    private val userId: String,
     private val onItemDeleted: () -> Unit
 ) : RecyclerView.Adapter<HistorialIMCAdapter.HistorialIMCViewHolder>() {
 
     private val db = FirebaseFirestore.getInstance()
+    private val dateFormatter = SimpleDateFormat("EEEE d 'de' MMMM, yyyy", Locale("es", "ES"))
 
     class HistorialIMCViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val textFecha: TextView = itemView.findViewById(R.id.textFecha)
@@ -38,7 +41,16 @@ class HistorialIMCAdapter(
     override fun onBindViewHolder(holder: HistorialIMCViewHolder, position: Int) {
         val historialIMC = historialIMCList[position]
 
-        holder.textFecha.text = "Fecha: ${historialIMC.fecha}"
+        // Convertir el timestamp a fecha formateada
+        val fecha = try {
+            val timestamp = historialIMC.timestamp as com.google.firebase.Timestamp
+            val date = timestamp.toDate()
+            dateFormatter.format(date)
+        } catch (e: Exception) {
+            "Fecha no disponible"
+        }
+
+        holder.textFecha.text = "Fecha: $fecha"
         holder.textPeso.text = "Peso: ${historialIMC.peso} kg"
         holder.textAltura.text = "Altura: ${historialIMC.altura} cm"
 
@@ -76,7 +88,7 @@ class HistorialIMCAdapter(
                         db.collection("users")
                             .document(userId)
                             .collection("historial_imc")
-                            .document(itemToDelete.id.toString())
+                            .document(itemToDelete.id)
                             .delete()
                             .addOnSuccessListener {
                                 historialIMCList.removeAt(currentPosition)
@@ -85,7 +97,6 @@ class HistorialIMCAdapter(
                                 onItemDeleted()
                             }
                             .addOnFailureListener { e ->
-                                // Manejar el error
                                 println("Error al eliminar el registro: ${e.message}")
                             }
                     }
@@ -97,9 +108,4 @@ class HistorialIMCAdapter(
     }
 
     override fun getItemCount() = historialIMCList.size
-
-
-    private fun getUserId(): String {
-        return userId //
-    }
 }

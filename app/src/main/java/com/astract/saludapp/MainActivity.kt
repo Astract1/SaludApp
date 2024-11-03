@@ -13,12 +13,12 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,31 +28,45 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Inicializar Firebase
         FirebaseApp.initializeApp(this)
         Log.d("MainActivity", "Firebase inicializado")
 
-        val sharedPreferences = getSharedPreferences("myAppPrefs", Context.MODE_PRIVATE)
-        val isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false)
-
-        if (!isLoggedIn) {
-            val intent = Intent(this, Login::class.java)
-            startActivity(intent)
-            finish()
+        // Verificar sesión
+        if (!checkSession()) {
+            redirectToLogin()
             return
-        } else {
-            userId = sharedPreferences.getString("userId", null) // Asignar a la variable de clase
-            if (userId != null) {
-                Log.d("MainActivity", "UID del usuario: $userId")
-                sharedViewModel.setUserId(userId) // Establecer userId en el ViewModel
-            } else {
-                Log.e("MainActivity", "No se encontró UID del usuario en SharedPreferences")
-            }
         }
 
         setContentView(R.layout.activity_main)
         solicitarPermisos()
         setupNavegacion()
+        setupProfileIcon()
+    }
 
+    private fun checkSession(): Boolean {
+        val sharedPreferences = getSharedPreferences("myAppPrefs", Context.MODE_PRIVATE)
+        val isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false)
+        userId = sharedPreferences.getString("userId", null)
+
+        if (isLoggedIn && userId != null) {
+            Log.d("MainActivity", "Sesión activa - UID del usuario: $userId")
+            sharedViewModel.setUserId(userId)
+            return true
+        }
+
+        Log.d("MainActivity", "No hay sesión activa")
+        return false
+    }
+
+    private fun redirectToLogin() {
+        val intent = Intent(this, Login::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+    }
+
+    private fun setupProfileIcon() {
         val profileIcon = findViewById<ImageView>(R.id.profile_icon)
         profileIcon.setOnClickListener {
             val intent = Intent(this, perfil::class.java)
@@ -62,20 +76,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-
-
-
     private fun setupNavegacion() {
         try {
             val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigationView)
-            val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
+            val navHostFragment = supportFragmentManager
+                .findFragmentById(R.id.fragmentContainerView) as NavHostFragment
             val navController = navHostFragment.navController
 
-            // Configurar el BottomNavigationView con el NavController
             NavigationUI.setupWithNavController(bottomNavigationView, navController)
 
-            // Establecer el listener para el BottomNavigationView
             bottomNavigationView.setOnNavigationItemSelectedListener { menuItem ->
                 val currentDestinationId = navController.currentDestination?.id
 
@@ -113,8 +122,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun navigateToFragment(
+        navController: NavController,
+        currentDestinationId: Int?,
+        destinationId: Int
+    ) {
+        if (currentDestinationId != destinationId) {
+            navController.navigate(destinationId)
+        }
+    }
+
     private fun solicitarPermisos() {
-        // Para Android 13 (API 33) y superiores - Notificaciones
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
                     this,
@@ -124,31 +142,62 @@ class MainActivity : AppCompatActivity() {
                 ActivityCompat.requestPermissions(
                     this,
                     arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
-                    123
+                    1
                 )
             }
         }
 
-
+        // Verificar y solicitar permiso para SCHEDULE_EXACT_ALARM
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
             if (!alarmManager.canScheduleExactAlarms()) {
-                val intent = Intent().apply {
-                    action = "android.settings.REQUEST_SCHEDULE_EXACT_ALARM"
-                }
+                Toast.makeText(
+                    this,
+                    "Por favor, habilita los permisos de alarma exacta para las notificaciones",
+                    Toast.LENGTH_LONG
+                ).show()
+                // Abrir configuración de permisos de alarma
+                val intent = Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
                 startActivity(intent)
             }
         }
     }
 
-    private fun navigateToFragment(navController: NavController, currentDestinationId: Int?, targetFragmentId: Int) {
-        if (currentDestinationId == targetFragmentId) {
-            navController.popBackStack(targetFragmentId, false)
-        } else {
-            val bundle = Bundle().apply {
-                putString("userId", userId)
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when (requestCode) {
+            1 -> {
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(
+                        this,
+                        "Permiso de notificaciones concedido",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        this,
+                        "Permiso de notificaciones denegado",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                return
             }
-            navController.navigate(targetFragmentId, bundle)
         }
+    }
+
+    fun logout() {
+        val sharedPreferences = getSharedPreferences("myAppPrefs", Context.MODE_PRIVATE)
+        sharedPreferences.edit().clear().apply()
+
+        FirebaseAuth.getInstance().signOut()
+        redirectToLogin()
+    }
+
+    companion object {
+        private const val NOTIFICATION_PERMISSION_CODE = 1
     }
 }

@@ -4,15 +4,15 @@ import android.os.Bundle
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.bumptech.glide.Glide
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestOptions
+import com.google.firebase.firestore.FirebaseFirestore
 
 class info_sellos_negros : AppCompatActivity() {
 
@@ -22,31 +22,54 @@ class info_sellos_negros : AppCompatActivity() {
     private lateinit var tvCaracteristicas: TextView
     private lateinit var tvDetalles: TextView
     private lateinit var tvRecomendaciones: TextView
+    private val db = FirebaseFirestore.getInstance()
+
+
+    companion object {
+        private const val IMAGE_WIDTH =400
+        private const val IMAGE_HEIGHT = 400
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_info_sellos_negros)
 
-        // Inicializa las vistas
+        initializeViews()
+        setupImageView()
+        setupWindowInsets()
+        setupBackButton()
+
+        intent.getStringExtra("sello_id")?.let { selloId ->
+            loadSelloDetails(selloId)
+        } ?: run {
+            showError("ID del sello no encontrado")
+            finish()
+        }
+    }
+
+    private fun initializeViews() {
         ivSello = findViewById(R.id.iv_sello)
         tvTitulo = findViewById(R.id.tv_titulo)
         tvResumen = findViewById(R.id.tv_resumen)
         tvCaracteristicas = findViewById(R.id.tv_caracteristicas)
         tvDetalles = findViewById(R.id.tv_detalles)
         tvRecomendaciones = findViewById(R.id.tv_recomendaciones)
+    }
 
-        // Obtiene el ID del sello desde el Intent
-        val selloId = intent.getStringExtra("sello_id") ?: return
-
-        // Carga los detalles del sello
-        loadSelloDetails(selloId)
-
-        // Listener para el botón de regreso
-        findViewById<ImageButton>(R.id.btn_volver).setOnClickListener {
-            finish()
+    private fun setupImageView() {
+        // Configurar el ImageView con los parámetros deseados
+        ivSello.apply {
+            layoutParams = layoutParams.apply {
+                width = IMAGE_WIDTH
+                height = IMAGE_HEIGHT
+            }
+            scaleType = ImageView.ScaleType.CENTER_CROP
+            adjustViewBounds = true
         }
+    }
 
+    private fun setupWindowInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rectangulo)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -54,39 +77,72 @@ class info_sellos_negros : AppCompatActivity() {
         }
     }
 
-    private fun loadSelloDetails(selloId: String) {
-        val inputStream = assets.open("sellos.json")
-        val bufferedReader = BufferedReader(InputStreamReader(inputStream))
-        val jsonString = bufferedReader.use { it.readText() }
-
-        val gson = Gson()
-        val listType = object : TypeToken<SellosResponse>() {}.type
-        val response: SellosResponse = gson.fromJson(jsonString, listType)
-
-        // Verifica el selloId recibido
-        println("selloId: $selloId")
-
-        // Encuentra el sello por ID
-        val sello = response.sellos.find { it.id.toString() == selloId }
-
-        // Depuración adicional
-        if (sello == null) {
-            println("No se encontró el sello con ID: $selloId")
-            return
-        } else {
-            println("Sello encontrado: ${sello.nombre}")
+    private fun setupBackButton() {
+        findViewById<ImageButton>(R.id.btn_volver).setOnClickListener {
+            finish()
         }
+    }
 
-        // Establece los datos en las vistas
-        tvTitulo.text = sello.nombre
-        tvResumen.text = sello.resumen
-        tvCaracteristicas.text = "Características:\n${sello.caracteristicas.joinToString("\n")}"
-        tvDetalles.text = "Detalles:\n${sello.detalles}"
-        tvRecomendaciones.text = "Recomendaciones:\n${sello.recomendaciones}"
+    private fun loadSelloDetails(selloId: String) {
+        db.collection("sellos")
+            .document(selloId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    val sello = document.toObject(SelloNegro::class.java)
+                    sello?.let {
+                        updateUI(it)
+                    } ?: run {
+                        showError("Error al convertir los datos del sello")
+                        finish()
+                    }
+                } else {
+                    showError("Sello no encontrado")
+                    finish()
+                }
+            }
+            .addOnFailureListener { e ->
+                showError("Error al cargar los datos: ${e.message}")
+                finish()
+            }
+    }
 
-        // Carga la imagen usando Glide
+    private fun updateUI(sello: SelloNegro) {
+        with(sello) {
+            tvTitulo.text = nombre
+            tvResumen.text = resumen
+            tvCaracteristicas.text = buildString {
+                append("Características:\n")
+                append(caracteristicas.joinToString("\n"))
+            }
+            tvDetalles.text = buildString {
+                append("Detalles:\n")
+                append(detalles)
+            }
+            tvRecomendaciones.text = buildString {
+                append("Recomendaciones:\n")
+                append(recomendaciones)
+            }
+
+            loadImage(imagen_url)
+        }
+    }
+
+    private fun loadImage(imageUrl: String) {
+        val requestOptions = RequestOptions()
+            .override(IMAGE_WIDTH, IMAGE_HEIGHT)
+            .centerCrop()
+            .diskCacheStrategy(DiskCacheStrategy.ALL)
+            .placeholder(R.drawable.no_image)
+            .error(R.drawable.no_image)
+
         Glide.with(this)
-            .load(sello.imagen_url)
+            .load(imageUrl)
+            .apply(requestOptions)
             .into(ivSello)
+    }
+
+    private fun showError(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 }
