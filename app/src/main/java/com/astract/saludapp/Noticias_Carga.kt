@@ -112,6 +112,8 @@ class Noticias_Carga : AppCompatActivity() {
                         infoTextView.text = it.content ?: "Contenido no disponible"
                         this.noticiaUrl = it.url
 
+
+
                         Glide.with(this)
                             .load(it.urlToImage)
                             .placeholder(R.drawable.no_image)
@@ -183,28 +185,44 @@ class Noticias_Carga : AppCompatActivity() {
                         Log.e("Noticias_Carga", "Error eliminando noticia: ${e.message}")
                     }
             } else {
-                // Guardar noticia
-                val noticiaData = hashMapOf(
-                    "url" to noticiaUrl,
-                    "title" to titleTextView.text.toString(),
-                    "fecha" to dateTextView.text.toString(),
-                    "content" to infoTextView.text.toString(),
-                    "timestamp" to System.currentTimeMillis()
-                )
+                // Obtener la URL de la imagen de la noticia original
+                db.collection("noticias")
+                    .whereEqualTo("url", noticiaUrl)
+                    .get()
+                    .addOnSuccessListener { querySnapshot ->
+                        if (!querySnapshot.isEmpty) {
+                            val noticia = querySnapshot.documents.first().toObject(Noticia::class.java)
 
-                noticiaRef.set(noticiaData)
-                    .addOnSuccessListener {
-                        isNoticiaGuardada = true
-                        updateGuardarButtonState()
-                        showToast("Noticia guardada exitosamente")
+                            // Guardar noticia con la URL de la imagen
+                            val noticiaData = hashMapOf(
+                                "url" to noticiaUrl,
+                                "title" to titleTextView.text.toString(),
+                                "fecha" to dateTextView.text.toString(),
+                                "content" to infoTextView.text.toString(),
+                                "urlToImage" to (noticia?.urlToImage ?: ""),
+                                "timestamp" to System.currentTimeMillis()
+                            )
+
+                            noticiaRef.set(noticiaData)
+                                .addOnSuccessListener {
+                                    isNoticiaGuardada = true
+                                    updateGuardarButtonState()
+                                    showToast("Noticia guardada exitosamente")
+                                }
+                                .addOnFailureListener { e ->
+                                    showToast("Error al guardar la noticia")
+                                    Log.e("Noticias_Carga", "Error guardando noticia: ${e.message}")
+                                }
+                        }
                     }
                     .addOnFailureListener { e ->
-                        showToast("Error al guardar la noticia")
-                        Log.e("Noticias_Carga", "Error guardando noticia: ${e.message}")
+                        showToast("Error al obtener la información de la noticia")
+                        Log.e("Noticias_Carga", "Error: ${e.message}")
                     }
             }
         } ?: showToast("Error: Usuario no identificado")
     }
+
 
     private fun formatDate(fecha: String): String {
         val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())

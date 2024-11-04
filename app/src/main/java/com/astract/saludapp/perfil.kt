@@ -28,7 +28,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil3.load
@@ -37,20 +36,19 @@ import coil3.request.error
 import coil3.request.placeholder
 import coil3.request.transformations
 import coil3.transform.CircleCropTransformation
-import com.astract.saludapp.database.MyDatabaseHelper
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Legend
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.PercentFormatter
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.ListenerRegistration
+import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 
 
@@ -58,7 +56,6 @@ class perfil : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var verMasButton: ImageView
     private var isExpanded = false
-    private lateinit var dbHelper: MyDatabaseHelper
     private lateinit var imcValueTextView: TextView
     private lateinit var imcEstadoTextView: TextView
     private lateinit var imcColorIndicator: View
@@ -74,6 +71,7 @@ class perfil : AppCompatActivity() {
     private lateinit var db: FirebaseFirestore
     private lateinit var storage: FirebaseStorage
     private lateinit var profileImage: ImageView
+    private var listenerRegistration: ListenerRegistration? = null
 
 
     data class RetoSimple(
@@ -84,18 +82,18 @@ class perfil : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseApp.initializeApp(this)
         setContentView(R.layout.activity_perfil)
-        dbHelper = MyDatabaseHelper(this)
+
+        // Inicializar Firebase primero
+        db = FirebaseFirestore.getInstance()
+        storage = FirebaseStorage.getInstance()
+
+        // Luego el resto de inicializaciones
         inicializarRecyclersGuardados()
         inicializarVistas()
         configurarVolver()
-        cargarDatos()
         setupPieChart()
-
-        db = FirebaseFirestore.getInstance()
-
-        storage = FirebaseStorage.getInstance()
-
 
         val userId = intent.getStringExtra("userId")
         if (userId != null) {
@@ -107,14 +105,13 @@ class perfil : AppCompatActivity() {
         }
 
         profileImage = findViewById(R.id.profile_image)
-
         loadProfileImage()
 
-
+        actualizarIMC()
+        cargarDatos()
     }
 
     private fun inicializarVistas() {
-        dbHelper = MyDatabaseHelper(this)
         recyclerView = findViewById(R.id.retos_recycler_view)
         verMasButton = findViewById(R.id.ver_mas_retos)
         imcValueTextView = findViewById(R.id.imc_value)
@@ -149,38 +146,46 @@ class perfil : AppCompatActivity() {
     }
 
     private fun cargarDatos() {
-        actualizarIMC()
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
-        val retosInscritos = dbHelper.obtenerRetosInscritos()
-        val listaRetos = retosInscritos.map { titulo ->
-            RetoSimple(
-                titulo = titulo,
-                descripcion = "Inscrito el: ${obtenerFechaInscripcion(titulo)}",
-                completado = dbHelper.isRetoCompletado(titulo)
+        // Referencia a la colección de retos inscritos del usuario
+        val retosRef = db.collection("users").document(userId)
+            .collection("retos_inscritos")
+
+        retosRef.get().addOnSuccessListener { documents ->
+            val listaRetos = documents.map { document ->
+                RetoSimple(
+                    titulo = document.getString("titulo") ?: "",
+                    descripcion = "Inscrito el: ${document.getString("fechaInscripcion") ?: ""}",
+                    completado = document.getBoolean("completado") ?: false
+                )
+            }
+
+            retosTotales = listaRetos.size
+            retosCompletados = listaRetos.count { it.completado }
+
+            val totalRetosTextView = findViewById<TextView>(R.id.total_retos)
+            totalRetosTextView.text = "Total de retos: $retosTotales"
+
+            if (listaRetos.isNotEmpty()) {
+                val retoActualTitulo = findViewById<TextView>(R.id.reto_actual_titulo)
+                val retoActualDescripcion = findViewById<TextView>(R.id.reto_actual_descripcion)
+                retoActualTitulo.text = listaRetos[0].titulo
+                retoActualDescripcion.text = listaRetos[0].descripcion
+            }
+
+            recyclerView.layoutManager = LinearLayoutManager(this)
+            recyclerView.adapter = PerfilRetosAdapter(
+                listaRetos.toMutableList(),
+                { titulo, completado -> actualizarEstadoReto(titulo, completado) },
+                { titulo -> eliminarRetoDeFirebase(titulo) }
             )
+
+            configurarBotonVerMas()
+        }.addOnFailureListener { exception ->
+            Log.e("Perfil", "Error getting documents: ", exception)
+            Toast.makeText(this, "Error al cargar los retos", Toast.LENGTH_SHORT).show()
         }
-
-        retosTotales = listaRetos.size
-        retosCompletados = listaRetos.count { it.completado }
-
-        val totalRetosTextView = findViewById<TextView>(R.id.total_retos)
-        totalRetosTextView.text = "Total de retos: $retosTotales"
-
-        if (listaRetos.isNotEmpty()) {
-            val retoActualTitulo = findViewById<TextView>(R.id.reto_actual_titulo)
-            val retoActualDescripcion = findViewById<TextView>(R.id.reto_actual_descripcion)
-            retoActualTitulo.text = listaRetos[0].titulo
-            retoActualDescripcion.text = listaRetos[0].descripcion
-        }
-
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = PerfilRetosAdapter(
-            listaRetos.toMutableList(),
-            { titulo, completado -> actualizarEstadoReto(titulo, completado) },
-            { titulo -> eliminarRetoDeBaseDeDatos(titulo) }
-        )
-
-        configurarBotonVerMas()
     }
 
     private fun configurarBotonVerMas() {
@@ -210,6 +215,99 @@ class perfil : AppCompatActivity() {
         }
     }
 
+    private fun actualizarDatosPieChart() {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId == null) {
+            pieChart.setNoDataText("No hay datos disponibles")
+            pieChart.invalidate()
+            return
+        }
+
+        // Cancelar el listener anterior si existe
+        listenerRegistration?.remove()
+
+        // Crear nuevo listener
+        listenerRegistration = db.collection("users")
+            .document(userId)
+            .collection("retos_inscritos")
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.e("Perfil", "Error al escuchar cambios", e)
+                    pieChart.setNoDataText("Error al cargar datos")
+                    pieChart.invalidate()
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null) {
+                    return@addSnapshotListener
+                }
+
+                val retosTotales = snapshot.size()
+                var retosCompletados = 0
+
+                // Contar retos completados
+                for (document in snapshot.documents) {
+                    val completado = document.getBoolean("completado") ?: false
+                    if (completado) {
+                        retosCompletados++
+                    }
+                }
+
+                if (retosTotales == 0) {
+                    pieChart.setNoDataText("No hay retos inscritos")
+                    pieChart.invalidate()
+                    return@addSnapshotListener
+                }
+
+                val entries = ArrayList<PieEntry>().apply {
+                    val porcentajeCompletados = if (retosTotales > 0) {
+                        (retosCompletados.toFloat() / retosTotales.toFloat()) * 100f
+                    } else 0f
+
+                    val porcentajePendientes = if (retosTotales > 0) {
+                        ((retosTotales - retosCompletados).toFloat() / retosTotales.toFloat()) * 100f
+                    } else 0f
+
+                    if (porcentajeCompletados > 0) {
+                        add(PieEntry(porcentajeCompletados, "Completados"))
+                    }
+                    if (porcentajePendientes > 0) {
+                        add(PieEntry(porcentajePendientes, "Pendientes"))
+                    }
+                }
+
+                if (entries.isEmpty()) {
+                    pieChart.setNoDataText("No hay retos inscritos")
+                    pieChart.invalidate()
+                    return@addSnapshotListener
+                }
+
+                val colors = ArrayList<Int>().apply {
+                    add(ContextCompat.getColor(this@perfil, R.color.completado_background))
+                    add(ContextCompat.getColor(this@perfil, R.color.pendiente_background))
+                }
+
+                val dataSet = PieDataSet(entries, "").apply {
+                    setColors(colors)
+                    setDrawValues(true)
+                    valueTextSize = 12f
+                    valueTextColor = Color.BLACK
+                }
+
+                pieChart.apply {
+                    data = PieData(dataSet).apply {
+                        setValueFormatter(PercentFormatter())
+                        setValueTextSize(12f)
+                        setValueTextColor(Color.BLACK)
+                    }
+                    invalidate()
+                }
+
+                // Actualizar el texto del total de retos
+                findViewById<TextView>(R.id.total_retos).text = "Total de retos: $retosTotales"
+            }
+    }
+
     private fun setupPieChart() {
         pieChart.apply {
             setUsePercentValues(true)
@@ -227,145 +325,121 @@ class perfil : AppCompatActivity() {
         actualizarDatosPieChart()
     }
 
-    private fun actualizarDatosPieChart() {
-        if (retosTotales == 0) {
-            // Si no hay retos, mostrar un gráfico vacío o un mensaje
-            pieChart.setNoDataText("No hay retos inscritos")
-            pieChart.invalidate()
-            return
-        }
 
-        val entries = ArrayList<PieEntry>().apply {
-            val porcentajeCompletados = if (retosTotales > 0) {
-                (retosCompletados.toFloat() / retosTotales.toFloat()) * 100f
-            } else 0f
+    private fun eliminarRetoDeFirebase(titulo: String) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
-            val porcentajePendientes = if (retosTotales > 0) {
-                ((retosTotales - retosCompletados).toFloat() / retosTotales.toFloat()) * 100f
-            } else 0f
-
-            if (porcentajeCompletados > 0) {
-                add(PieEntry(porcentajeCompletados, "Completados"))
+        db.collection("users").document(userId)
+            .collection("retos_inscritos")
+            .whereEqualTo("titulo", titulo)
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    document.reference.delete()
+                        .addOnSuccessListener {
+                            Toast.makeText(this, "Reto eliminado", Toast.LENGTH_SHORT).show()
+                            cargarDatos()
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("Perfil", "Error deleting reto: ", e)
+                            Toast.makeText(this, "Error al eliminar el reto", Toast.LENGTH_SHORT).show()
+                        }
+                }
             }
-            if (porcentajePendientes > 0) {
-                add(PieEntry(porcentajePendientes, "Pendientes"))
-            }
-        }
-
-        if (entries.isEmpty()) {
-            pieChart.setNoDataText("No hay retos inscritos")
-            pieChart.invalidate()
-            return
-        }
-
-        val colors = ArrayList<Int>().apply {
-            add(ContextCompat.getColor(this@perfil, R.color.completado_background))
-            add(ContextCompat.getColor(this@perfil, R.color.pendiente_background))
-        }
-
-        val dataSet = PieDataSet(entries, "").apply {
-            setColors(colors)
-            setDrawValues(true)
-            valueTextSize = 12f
-            valueTextColor = Color.BLACK
-        }
-
-        pieChart.apply {
-            data = PieData(dataSet).apply {
-                setValueFormatter(PercentFormatter())
-                setValueTextSize(12f)
-                setValueTextColor(Color.BLACK)
-            }
-            invalidate()
-        }
-
-        // Actualizar el texto del total de retos
-        findViewById<TextView>(R.id.total_retos).text = "Total de retos: $retosTotales"
     }
 
-    private fun actualizarEstadoReto(tituloReto: String, completado: Boolean) {
-        dbHelper.actualizarEstadoReto(tituloReto, completado)
-        if (completado) retosCompletados++ else retosCompletados--
-        actualizarDatosPieChart()
+
+    private fun actualizarEstadoReto(titulo: String, completado: Boolean) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        db.collection("users").document(userId)
+            .collection("retos_inscritos")
+            .whereEqualTo("titulo", titulo)
+            .get()
+            .addOnSuccessListener { documents ->
+                for (document in documents) {
+                    document.reference.update("completado", completado)
+                        .addOnSuccessListener {
+                            // Actualizar UI si es necesario
+                            cargarDatos()
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("Perfil", "Error updating reto: ", e)
+                            Toast.makeText(this, "Error al actualizar el reto", Toast.LENGTH_SHORT).show()
+                        }
+                }
+            }
     }
 
     private fun actualizarIMC() {
-        val imc = dbHelper.obtenerUltimoIMC()
-        if (imc != null) {
-            // Animación para el valor del IMC
-            val animator = ValueAnimator.ofFloat(0f, imc.toFloat())
-            animator.duration = 1000
-            animator.addUpdateListener { animation ->
-                imcValueTextView.text = String.format("%.1f", animation.animatedValue as Float)
-            }
-            animator.start()
+        val userId = FirebaseAuth.getInstance().currentUser?.uid
+        if (userId == null) {
+            // Si no hay usuario, mostrar valores por defecto
+            mostrarIMCPorDefecto()
+            return
+        }
 
-            val (estado, colorTo) = when {
-                imc < 18.5 -> Pair("Bajo peso", getColor(R.color.yellow))
-                imc < 25 -> Pair("Normal", getColor(R.color.green))
-                imc < 30 -> Pair("Sobrepeso", getColor(R.color.yellow))
-                else -> Pair("Obesidad", getColor(R.color.red))
-            }
+        db.collection("users")
+            .document(userId)
+            .collection("historial_imc")
+            .orderBy("fecha", Query.Direction.DESCENDING)
+            .limit(1)
+            .get()
+            .addOnSuccessListener { documents ->
+                if (!documents.isEmpty) {
+                    val ultimoIMC = documents.documents[0].getDouble("imc")
+                    if (ultimoIMC != null) {
+                        // Animación para el valor del IMC
+                        val animator = ValueAnimator.ofFloat(0f, ultimoIMC.toFloat())
+                        animator.duration = 1000
+                        animator.addUpdateListener { animation ->
+                            imcValueTextView.text = String.format("%.1f", animation.animatedValue as Float)
+                        }
+                        animator.start()
 
-            imcEstadoTextView.text = estado
+                        val (estado, colorTo) = when {
+                            ultimoIMC < 18.5 -> Pair("Bajo peso", getColor(R.color.yellow))
+                            ultimoIMC < 25 -> Pair("Normal", getColor(R.color.green))
+                            ultimoIMC < 30 -> Pair("Sobrepeso", getColor(R.color.yellow))
+                            else -> Pair("Obesidad", getColor(R.color.red))
+                        }
 
-            // Animar el cambio de color
-            val colorFrom =
-                (imcColorIndicator.background as? ColorDrawable)?.color ?: Color.TRANSPARENT
-            ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo).apply {
-                duration = 500
-                addUpdateListener { animator ->
-                    imcColorIndicator.setBackgroundColor(animator.animatedValue as Int)
+                        imcEstadoTextView.text = estado
+
+                        // Animar el cambio de color
+                        val colorFrom = (imcColorIndicator.background as? ColorDrawable)?.color
+                            ?: Color.TRANSPARENT
+                        ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo).apply {
+                            duration = 500
+                            addUpdateListener { animator ->
+                                imcColorIndicator.setBackgroundColor(animator.animatedValue as Int)
+                            }
+                            start()
+                        }
+                    } else {
+                        mostrarIMCPorDefecto()
+                    }
+                } else {
+                    mostrarIMCPorDefecto()
                 }
-                start()
             }
-        } else {
-            imcValueTextView.text = "---"
-            imcEstadoTextView.text = "Sin datos"
-            imcColorIndicator.setBackgroundColor(getColor(R.color.default_cyan))
-        }
-    }
-
-    private fun obtenerFechaInscripcion(tituloReto: String): String {
-        val db = dbHelper.readableDatabase
-        var fecha = ""
-
-        val cursor = db.query(
-            MyDatabaseHelper.TABLE_NAME_INSCRIPCIONES,
-            arrayOf(MyDatabaseHelper.COLUMN_FECHA_INSCRIPCION),
-            "${MyDatabaseHelper.COLUMN_TITULO_RETO} = ?",
-            arrayOf(tituloReto),
-            null,
-            null,
-            null
-        )
-
-        cursor.use {
-            if (it.moveToFirst()) {
-                fecha =
-                    it.getString(it.getColumnIndexOrThrow(MyDatabaseHelper.COLUMN_FECHA_INSCRIPCION))
+            .addOnFailureListener { e ->
+                Log.e("Perfil", "Error al obtener IMC", e)
+                mostrarIMCPorDefecto()
             }
-        }
-
-        return fecha
     }
 
-    private fun eliminarRetoDeBaseDeDatos(tituloReto: String) {
-        val eraCompletado = dbHelper.isRetoCompletado(tituloReto)
-
-        if (dbHelper.eliminarInscripcionReto(tituloReto)) {
-            if (retosTotales > 0) retosTotales--
-            if (eraCompletado && retosCompletados > 0) retosCompletados--
-
-            actualizarDatosPieChart()
-            Toast.makeText(this, "Reto eliminado correctamente", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "Error al eliminar el reto", Toast.LENGTH_SHORT).show()
-        }
+    private fun mostrarIMCPorDefecto() {
+        imcValueTextView.text = "---"
+        imcEstadoTextView.text = "Sin datos"
+        imcColorIndicator.setBackgroundColor(getColor(R.color.default_cyan))
     }
+
+
+
 
     private fun inicializarRecyclersGuardados() {
-        // Inicializar RecyclerViews
+        // Inicializar RecyclerViews y vistas
         noticiasRecyclerView = findViewById(R.id.noticias_recycler_view)
         articulosRecyclerView = findViewById(R.id.articulos_recycler_view)
         noNoticiasText = findViewById(R.id.no_noticias_text)
@@ -397,62 +471,131 @@ class perfil : AppCompatActivity() {
     }
 
     private fun cargarNoticiasYArticulos() {
-        val startTime = System.currentTimeMillis()  // Tiempo de inicio
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
 
-        // Cargar noticias guardadas
+        // Para noticias
+        db.collection("users").document(userId).collection("noticias_guardadas")
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.e("Perfil", "Error al cargar noticias: ${e.message}")
+                    Toast.makeText(this, "Error al cargar noticias", Toast.LENGTH_SHORT).show()
+                    return@addSnapshotListener
+                }
+
+                val noticiasGuardadas = snapshot?.documents?.mapNotNull { doc ->
+                    try {
+                        val noticia = doc.toObject(Noticia::class.java)
+                        Log.d("Perfil", "Noticia cargada: $noticia")
+                        noticia
+                    } catch (e: Exception) {
+                        Log.e("Perfil", "Error al convertir noticia: ${e.message}")
+                        null
+                    }
+                } ?: emptyList()
+
+                noticiasAdapter.actualizarNoticias(noticiasGuardadas)
+                noNoticiasText.visibility = if (noticiasGuardadas.isEmpty()) View.VISIBLE else View.GONE
+            }
 
 
-        // Cargar artículos guardados
-        val articulosGuardados = dbHelper.getArticulosGuardados()
-        articulosAdapter.actualizarArticulos(articulosGuardados)
-        noArticulosText.visibility = if (articulosGuardados.isEmpty()) View.VISIBLE else View.GONE
+        db.collection("users").document(userId).collection("articulos_guardados")
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.e("Perfil", "Error al cargar artículos: ${e.message}")
+                    Toast.makeText(this, "Error al cargar artículos", Toast.LENGTH_SHORT).show()
+                    return@addSnapshotListener
+                }
 
-        val endTime = System.currentTimeMillis()  // Tiempo después de la carga
-        val loadTime = endTime - startTime
+                val articulosGuardados = snapshot?.documents?.mapNotNull { doc ->
+                    try {
+                        val articulo = doc.toObject(Articulo::class.java)
+                        Log.d("Perfil", "Artículo cargado: $articulo")
+                        articulo
+                    } catch (e: Exception) {
+                        Log.e("Perfil", "Error al convertir artículo: ${e.message}")
+                        null
+                    }
+                } ?: emptyList()
 
-        // Imprimir el tiempo de carga
-        Toast.makeText(this, "Tiempo de carga: $loadTime ms", Toast.LENGTH_SHORT).show()
+                articulosAdapter.actualizarArticulos(articulosGuardados)
+                noArticulosText.visibility = if (articulosGuardados.isEmpty()) View.VISIBLE else View.GONE
+            }
     }
 
-    private fun abrirDetalleNoticia(noticia: Noticia) {
-        val intent = Intent(this, Noticias_Carga::class.java).apply {
-            putExtra("NOTICIA_ID", noticia.id)
-        }
-        startActivity(intent)
-    }
-
-    private fun abrirDetalleArticulo(articulo: Articulo) {
-        val intent = Intent(this, ArticuloCarga::class.java).apply {
-            putExtra("ARTICULO_ID", articulo.articleId)
-        }
-        startActivity(intent)
-    }
 
     private fun eliminarNoticia(noticia: Noticia) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val documentId = generateDocumentIdFromUrl(noticia.url)
+
         AlertDialog.Builder(this)
             .setTitle("Confirmación")
             .setMessage("¿Estás seguro de que deseas eliminar esta noticia?")
             .setPositiveButton("Sí") { _, _ ->
-                dbHelper.unSaveNoticia(noticia.id)
-                cargarNoticiasYArticulos()
-                Toast.makeText(this, "Noticia eliminada", Toast.LENGTH_SHORT).show()
+                db.collection("users")
+                    .document(userId)
+                    .collection("noticias_guardadas")
+                    .document(documentId)
+                    .delete()
+                    .addOnSuccessListener {
+                        Toast.makeText(this, "Noticia eliminada", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "Error al eliminar la noticia", Toast.LENGTH_SHORT).show()
+                    }
             }
             .setNegativeButton("No", null)
             .show()
     }
 
     private fun eliminarArticulo(articulo: Articulo) {
+        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        val documentId = generateDocumentIdFromUrl(articulo.url)
+
         AlertDialog.Builder(this)
             .setTitle("Confirmación")
             .setMessage("¿Estás seguro de que deseas eliminar este artículo?")
             .setPositiveButton("Sí") { _, _ ->
-                dbHelper.unSaveArticulo(articulo.articleId)
-                cargarNoticiasYArticulos()
-                Toast.makeText(this, "Artículo eliminado", Toast.LENGTH_SHORT).show()
+                db.collection("users")
+                    .document(userId)
+                    .collection("articulos_guardados")
+                    .document(documentId)
+                    .delete()
+                    .addOnSuccessListener {
+                        Toast.makeText(this, "Artículo eliminado", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener {
+                        Toast.makeText(this, "Error al eliminar el artículo", Toast.LENGTH_SHORT).show()
+                    }
             }
             .setNegativeButton("No", null)
             .show()
     }
+
+
+    private fun generateDocumentIdFromUrl(url: String): String {
+        return url.replace("https://", "")
+            .replace("http://", "")
+            .replace("/", "_")
+            .replace(".", "_")
+    }
+
+
+    private fun abrirDetalleNoticia(noticia: Noticia) {
+        val intent = Intent(this, Noticias_Carga::class.java).apply {
+            putExtra("NOTICIA_URL", noticia.url)
+        }
+        Log.d("Perfil", "Abriendo noticia: ${noticia.url}")
+        startActivity(intent)
+    }
+
+    private fun abrirDetalleArticulo(articulo: Articulo) {
+        val intent = Intent(this, ArticuloCarga::class.java).apply {
+            putExtra("ARTICULO_URL", articulo.url)
+        }
+        Log.d("Perfil", "Abriendo artículo: ${articulo.url}")
+        startActivity(intent)
+    }
+
 
     private fun obtenerUsuarioPorUID(uuid: String) {
         val userDocRef = db.collection("users").document(uuid)
@@ -484,10 +627,6 @@ class perfil : AppCompatActivity() {
             menuInflater.inflate(R.menu.profile_menu, menu)
             setOnMenuItemClickListener { item ->
                 when (item.itemId) {
-                    R.id.edit_photo -> {
-                        openImagePicker()
-                        true
-                    }
 
                     R.id.logout -> {
                         showLogoutConfirmation()
@@ -621,26 +760,7 @@ class perfil : AppCompatActivity() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == RESULT_OK) {
-            when (requestCode) {
-                CAMERA_REQUEST -> {
-                    val imageBitmap = data?.extras?.get("data") as? Bitmap
-                    imageBitmap?.let {
-                        val uri = getImageUriFromBitmap(it)
-                        uploadImageToCloudinary(uri)
-                    }
-                }
 
-                GALLERY_REQUEST -> {
-                    data?.data?.let { uri ->
-                        uploadImageToCloudinary(uri)
-                    }
-                }
-            }
-        }
-    }
 
     private fun getImageUriFromBitmap(bitmap: Bitmap): Uri {
         val bytes = ByteArrayOutputStream()
@@ -653,42 +773,6 @@ class perfil : AppCompatActivity() {
         )
         return Uri.parse(path)
     }
-
-    private fun uploadImageToCloudinary(imageUri: Uri) {
-        val progressDialog = ProgressDialog(this).apply {
-            setTitle("Actualizando foto de perfil")
-            setMessage("Por favor espere...")
-            show()
-        }
-
-        val userId = intent.getStringExtra("userId")
-        if (userId == null) {
-            progressDialog.dismiss()
-            Toast.makeText(this, "Error: Usuario no identificado", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                // Usar CloudinaryManager directamente
-                val imageUrl = CloudinaryManager.uploadImage(imageUri)
-                withContext(Dispatchers.Main) {
-                    updateProfileImage(imageUrl)
-                    progressDialog.dismiss()
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    progressDialog.dismiss()
-                    Toast.makeText(
-                        this@perfil,
-                        "Error al subir la imagen: ${e.message}",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        }
-    }
-
     private fun updateProfileImage(imageUrl: String) {
         val userId = intent.getStringExtra("userId") ?: run {
             Log.e("ProfileActivity", "userId is null")
@@ -789,7 +873,10 @@ class perfil : AppCompatActivity() {
             }
     }
 
-
+    override fun onDestroy() {
+        super.onDestroy()
+        listenerRegistration?.remove()
+    }
 
 
 

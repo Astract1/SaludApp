@@ -17,29 +17,25 @@ import com.astract.saludapp.Articulos
 import com.astract.saludapp.NoticiasAdapter
 import com.astract.saludapp.Noticias_Carga
 import com.astract.saludapp.R
-import com.astract.saludapp.database.MyDatabaseHelper
 import com.astract.saludapp.viewmodel.NoticiasViewModel
 import com.astract.saludapp.viewmodel.NoticiasViewModelFactory
 
 class noticias : Fragment() {
 
     private lateinit var noticiasViewModel: NoticiasViewModel
-    private lateinit var dbHelper: MyDatabaseHelper
     private lateinit var adapter: NoticiasAdapter
     private lateinit var recyclerView: RecyclerView
     private lateinit var searchView: SearchView
     private lateinit var noResultsTextView: TextView
     private lateinit var progressBar: ProgressBar
-    private lateinit var buttonArticulos: Button // Nueva referencia al botón
-
+    private lateinit var buttonArticulos: Button
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_noticias, container, false)
 
-        dbHelper = MyDatabaseHelper(requireContext())
-        noticiasViewModel = NoticiasViewModelFactory(dbHelper).create(NoticiasViewModel::class.java)
+
 
         recyclerView = view.findViewById(R.id.recyclerNoticias)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -72,7 +68,7 @@ class noticias : Fragment() {
 
     private fun loadNoticiasFromFirestore() {
         progressBar.visibility = View.VISIBLE
-
+        noticiasViewModel = NoticiasViewModelFactory().create(NoticiasViewModel::class.java)
         noticiasViewModel.fetchAndUpdateNews(requireContext())
         noticiasViewModel.loadNoticias()
 

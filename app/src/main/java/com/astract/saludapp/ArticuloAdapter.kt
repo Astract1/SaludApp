@@ -63,7 +63,7 @@ class ArticuloAdapter(
 
         private fun openDetailActivity(context: Context, articulo: Articulo) {
             val intent = Intent(context, ArticuloCarga::class.java)
-            intent.putExtra("ARTICULO_URL", articulo.url) // Cambiar a ARTICULO_URL
+            intent.putExtra("ARTICULO_URL", articulo.url)
             context.startActivity(intent)
         }
     }

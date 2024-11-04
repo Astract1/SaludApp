@@ -132,7 +132,8 @@
             app:passwordToggleEnabled="true"
             app:startIconDrawable="@drawable/ic_lock"
             app:startIconTint="@color/purple_500"
-            app:helperText="Mínimo 8 caracteres">
+            app:helperText="La contraseña debe contener:\n• Mínimo 8 caracteres\n• Al menos una mayúscula\n• Al menos una minúscula\n• Al menos un número\n• Al menos un carácter especial"
+            app:helperTextEnabled="true">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextPassword"

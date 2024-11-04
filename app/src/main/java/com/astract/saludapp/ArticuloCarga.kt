@@ -108,12 +108,14 @@ class ArticuloCarga : AppCompatActivity() {
                     val titulo = document.getString("title") ?: "Título no disponible"
                     val fecha = document.getString("publishedAt") ?: "Fecha no disponible"
                     val abstracto = document.getString("abstract") ?: "Resumen no disponible"
+                    val imagenUrl = document.getString("imagenurl")
 
                     titleTextView.text = titulo
                     dateTextView.text = "Fecha: ${formatDate(fecha)}"
                     abstractTextView.text = abstracto
 
-                    val imagenUrl = document.getString("imagenurl")
+                    imageView.tag = imagenUrl
+
                     Glide.with(this)
                         .load(imagenUrl)
                         .placeholder(R.drawable.no_image)
@@ -187,6 +189,7 @@ class ArticuloCarga : AppCompatActivity() {
                         "title" to titleTextView.text.toString(),
                         "fecha" to dateTextView.text.toString(),
                         "abstract" to abstractTextView.text.toString(),
+                        "imagenurl" to (imageView.tag as? String ?: ""), // Guardar la URL de la imagen
                         "timestamp" to System.currentTimeMillis()
                     )
 
@@ -204,6 +207,7 @@ class ArticuloCarga : AppCompatActivity() {
             } ?: showToast("Error: URL no disponible")
         } ?: showToast("Error: Usuario no identificado")
     }
+
 
     private fun generateDocumentIdFromUrl(url: String): String {
         return url.replace("https://", "")

@@ -8,7 +8,7 @@ data class Source(
 )
 
 data class Noticia(
-    val id: Int = 0,  // Es recomendable que el ID sea un String si se va a utilizar el ID de documento de Firestore
+    val id: Int = 0,
     val title: String = "",
     val description: String = "",
     val content: String = "",

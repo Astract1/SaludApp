@@ -16,9 +16,11 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
+import com.bumptech.glide.Glide
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class MainActivity : AppCompatActivity() {
 
@@ -68,6 +70,33 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupProfileIcon() {
         val profileIcon = findViewById<ImageView>(R.id.profile_icon)
+
+        // Cargar la imagen del perfil desde Firebase
+        userId?.let { uid ->
+            FirebaseFirestore.getInstance().collection("users")
+                .document(uid)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document != null && document.exists()) {
+                        val profileImageUrl = document.getString("profileImage")
+
+                        // Cargar la imagen usando Glide
+                        Glide.with(this)
+                            .load(profileImageUrl)
+                            .circleCrop() // Para hacer la imagen circular
+                            .placeholder(R.drawable.avatar)
+                            .error(R.drawable.avatar)
+                            .into(profileIcon)
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e("MainActivity", "Error loading profile image: ${e.message}")
+                    // Cargar imagen por defecto en caso de error
+                    profileIcon.setImageResource(R.drawable.avatar)
+                }
+        }
+
+        // Mantener el OnClickListener
         profileIcon.setOnClickListener {
             val intent = Intent(this, perfil::class.java)
             intent.putExtra("userId", userId)
@@ -75,6 +104,7 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
     }
+
 
     private fun setupNavegacion() {
         try {
