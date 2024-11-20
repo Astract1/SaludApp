@@ -41,5 +41,9 @@
         <item name="cornerSize">16dp</item>
     </style>
 
+    <style name="RoundedInputLayout">
+        <item name="cornerSize">12dp</item>
+    </style>
+
 
 </resources>

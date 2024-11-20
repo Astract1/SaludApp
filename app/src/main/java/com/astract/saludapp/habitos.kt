@@ -7,18 +7,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.progressindicator.CircularProgressIndicator
-import android.widget.TextView
-import android.widget.Button
-import androidx.appcompat.app.AlertDialog
-import androidx.fragment.app.activityViewModels
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.SetOptions
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -66,7 +62,11 @@ class habitos : Fragment() {
         // Configurar botón de agregar
         val addButton: Button = view.findViewById(R.id.btn_add)
         addButton.setOnClickListener {
-            mostrarDialogoPersonalizado()
+            adapter.showHabitCreationDialog(requireContext()) { nuevoHabito ->
+                adapter.addHabit(nuevoHabito)
+                updateProgress(adapter.getItems())
+                updateEmptyViewVisibility()
+            }
         }
     }
 
@@ -90,56 +90,6 @@ class habitos : Fragment() {
         }
     }
 
-    private fun mostrarDialogoPersonalizado() {
-        val dialogView = LayoutInflater.from(requireContext())
-            .inflate(R.layout.dialog_custom, null)
-
-        val nombreHábitoEditText: TextInputEditText =
-            dialogView.findViewById(R.id.text_input_edit_text_nombre_habito)
-        val guardarButton: MaterialButton =
-            dialogView.findViewById(R.id.boton_guardar_habito)
-
-        val customDialog = AlertDialog.Builder(requireContext())
-            .setView(dialogView)
-            .create()
-
-        guardarButton.setOnClickListener {
-            val nombreHábito = nombreHábitoEditText.text.toString().trim()
-            if (nombreHábito.isNotEmpty()) {
-                val nuevoHábito = Habito(nombreHábito, false)
-                adapter.addHabit(nuevoHábito)
-                guardarHábitoEnFirestore(nuevoHábito)
-                updateProgress(adapter.getItems())
-                updateEmptyViewVisibility()
-                customDialog.dismiss()
-            } else {
-                nombreHábitoEditText.error = "El nombre del hábito no puede estar vacío"
-            }
-        }
-
-        customDialog.show()
-    }
-
-    private fun guardarHábitoEnFirestore(habito: Habito) {
-        sharedViewModel.userId.value?.let { userId ->
-            val habitoData = mapOf(
-                "nombre" to habito.nombre,
-                "completado" to habito.completado
-            )
-
-            val habitoRef = db.collection("users").document(userId)
-                .collection("habitos").document(habito.nombre)
-
-            habitoRef.set(habitoData, SetOptions.merge())
-                .addOnSuccessListener {
-                    Log.d("Firestore", "Hábito guardado correctamente")
-                }
-                .addOnFailureListener { e ->
-                    Log.e("Firestore", "Error al guardar el hábito", e)
-                }
-        }
-    }
-
     private fun obtenerHabitosUsuario(userId: String) {
         val habitosRef = db.collection("users").document(userId)
             .collection("habitos")
@@ -150,7 +100,9 @@ class habitos : Fragment() {
                 for (document in documents) {
                     val nombre = document.getString("nombre") ?: ""
                     val completado = document.getBoolean("completado") ?: false
-                    habitosList.add(Habito(nombre, completado))
+                    val tiempo = document.getString("tiempo") ?: ""
+                    val frecuencia = document.getString("frecuencia") ?: ""
+                    habitosList.add(Habito(nombre, completado, tiempo, frecuencia))
                 }
                 adapter.updateHabits(habitosList)
                 updateProgress(habitosList)

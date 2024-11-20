@@ -90,5 +90,7 @@
         implementation("io.coil-kt.coil3:coil-svg:3.0.0-rc02")
         implementation ("com.cloudinary:cloudinary-android:2.3.1")
         implementation ("com.squareup.okhttp3:okhttp:4.9.1")
+        implementation ("com.google.android.material:material:1.12.0")
+
     }
 

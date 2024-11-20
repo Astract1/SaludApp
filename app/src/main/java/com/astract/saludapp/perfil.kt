@@ -50,6 +50,7 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
 import java.io.ByteArrayOutputStream
+import com.google.firebase.firestore.Source
 
 
 class perfil : AppCompatActivity() {
@@ -373,8 +374,8 @@ class perfil : AppCompatActivity() {
 
     private fun actualizarIMC() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid
+
         if (userId == null) {
-            // Si no hay usuario, mostrar valores por defecto
             mostrarIMCPorDefecto()
             return
         }
@@ -382,52 +383,57 @@ class perfil : AppCompatActivity() {
         db.collection("users")
             .document(userId)
             .collection("historial_imc")
-            .orderBy("fecha", Query.Direction.DESCENDING)
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .limit(1)
             .get()
             .addOnSuccessListener { documents ->
                 if (!documents.isEmpty) {
-                    val ultimoIMC = documents.documents[0].getDouble("imc")
-                    if (ultimoIMC != null) {
-                        // Animación para el valor del IMC
-                        val animator = ValueAnimator.ofFloat(0f, ultimoIMC.toFloat())
-                        animator.duration = 1000
-                        animator.addUpdateListener { animation ->
-                            imcValueTextView.text = String.format("%.1f", animation.animatedValue as Float)
-                        }
-                        animator.start()
-
-                        val (estado, colorTo) = when {
-                            ultimoIMC < 18.5 -> Pair("Bajo peso", getColor(R.color.yellow))
-                            ultimoIMC < 25 -> Pair("Normal", getColor(R.color.green))
-                            ultimoIMC < 30 -> Pair("Sobrepeso", getColor(R.color.yellow))
-                            else -> Pair("Obesidad", getColor(R.color.red))
-                        }
-
-                        imcEstadoTextView.text = estado
-
-                        // Animar el cambio de color
-                        val colorFrom = (imcColorIndicator.background as? ColorDrawable)?.color
-                            ?: Color.TRANSPARENT
-                        ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo).apply {
-                            duration = 500
-                            addUpdateListener { animator ->
-                                imcColorIndicator.setBackgroundColor(animator.animatedValue as Int)
-                            }
-                            start()
-                        }
-                    } else {
-                        mostrarIMCPorDefecto()
-                    }
+                    val ultimoIMC = documents.documents[0].getDouble("imc") ?: 0.0
+                    Log.d("ActualizarIMC", "Último IMC obtenido: $ultimoIMC") // Aquí se registra el valor
+                    actualizarVistaIMC(ultimoIMC)
                 } else {
+                    Log.d("ActualizarIMC", "No se encontró ningún documento en el historial de IMC") // Log si no hay datos
                     mostrarIMCPorDefecto()
                 }
             }
-            .addOnFailureListener { e ->
-                Log.e("Perfil", "Error al obtener IMC", e)
+            .addOnFailureListener { exception ->
+                Log.e("ActualizarIMC", "Error al obtener el IMC", exception) // Log del error
+                Toast.makeText(this, "Error al obtener el IMC", Toast.LENGTH_SHORT).show()
                 mostrarIMCPorDefecto()
             }
     }
+
+
+    private fun actualizarVistaIMC(ultimoIMC: Double) {
+        // Animación para el valor del IMC
+        val animator = ValueAnimator.ofFloat(0f, ultimoIMC.toFloat())
+        animator.duration = 1000
+        animator.addUpdateListener { animation ->
+            imcValueTextView.text = String.format("%.1f", animation.animatedValue as Float)
+        }
+        animator.start()
+
+        // Determinar el estado y color según el IMC
+        val (estado, colorTo) = when {
+            ultimoIMC < 18.5 -> Pair("Bajo peso", getColor(R.color.yellow))
+            ultimoIMC < 25 -> Pair("Normal", getColor(R.color.green))
+            ultimoIMC < 30 -> Pair("Sobrepeso", getColor(R.color.yellow))
+            else -> Pair("Obesidad", getColor(R.color.red))
+        }
+
+        imcEstadoTextView.text = estado
+
+        // Animar el cambio de color
+        val colorFrom = (imcColorIndicator.background as? ColorDrawable)?.color ?: Color.TRANSPARENT
+        ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo).apply {
+            duration = 500
+            addUpdateListener { animator ->
+                imcColorIndicator.setBackgroundColor(animator.animatedValue as Int)
+            }
+            start()
+        }
+    }
+
 
     private fun mostrarIMCPorDefecto() {
         imcValueTextView.text = "---"

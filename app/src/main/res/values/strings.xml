@@ -14,13 +14,7 @@
     <string name="fecha">Jueves 12 de septiembre, 2024</string>
     <string name="progress_percentage">50%</string>
     <string name="habitos_completados">5 de 10 hábitos habilitados</string>
-    <string name="habitos_nuevos">Crear Nuevo Habito</string>
-    <string name="close_icon">Cerrar</string>
-    <string name="nombre_habito">Nombre del Hábito</string>
     <string name="descripcion_habito">Descripción del Hábito</string>
-    <string name="tiempo">Tiempo</string>
-    <string name="frecuencia">Frecuencia</string>
-    <string name="guardar_habito">Crear Habito</string>
     <string name="no_habitos">No hay hábitos</string>
     <string name="calificación">Calificación Actual</string>
     <string name="peso_calificacion">-----</string>
@@ -41,5 +35,30 @@
     <string name="Sellos_Negros">Sellos Negros</string>
     <string name="default_web_client_id">576294934676-bif3cqkkjik9p5h7ros5eg4d1ofefula.apps.googleusercontent.com</string>
 
+    <string name="habitos_nuevos">Nuevos Hábitos</string>
+    <string name="nombre_habito">Nombre del Hábito</string>
+    <string name="close_icon">Cerrar</string>
+    <string name="tiempo">Tiempo</string>
+    <string name="frecuencia">Frecuencia</string>
+    <string name="guardar_habito">Guardar Hábito</string>
+
+    <!-- Time options -->
+    <string-array name="tiempo_options">
+        <item>5 minutos</item>
+        <item>10 minutos</item>
+        <item>15 minutos</item>
+        <item>30 minutos</item>
+        <item>1 hora</item>
+        <item>Personalizado</item>
+    </string-array>
+
+    <!-- Frequency options -->
+    <string-array name="frecuencia_options">
+        <item>Diario</item>
+        <item>Semanal</item>
+        <item>Quincenal</item>
+        <item>Mensual</item>
+        <item>Personalizado</item>
+    </string-array>
 
 </resources>

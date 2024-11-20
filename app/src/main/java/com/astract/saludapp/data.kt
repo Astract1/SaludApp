@@ -62,9 +62,10 @@ data class MetaIMCData(
 
 data class Habito(
     val nombre: String,
-    var completado: Boolean
+    var completado: Boolean,
+    var tiempo: String = "",
+    var frecuencia: String = ""
 )
-
 data class Disponibilidad(
     val fecha_inicio: String = "",  // Valor por defecto
     val fecha_fin: String = ""      // Valor por defecto
